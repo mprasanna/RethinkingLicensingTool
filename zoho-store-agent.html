@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Store Sales Agent — v4 prototype</title>
+<style>[hidden]{display:none!important}
+:root{--bg:#f4f5f7;--card:#fff;--line:#dde1e8;--line2:#eceef2;--tx:#1a2030;--mut:#596274;--pri:#2156c2;--pri2:#eaf0fd;--ok:#14713f;--okb:#e5f4eb;--warn:#8a5300;--warnb:#fff3d6;--bad:#b42318;--badb:#fdecea;--info:#1b5fa8;--infob:#e8f1fb;--focus:#f2a900;--r:10px}
+*{box-sizing:border-box}html,body{height:100%}
+body{margin:0;font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--tx);display:flex;flex-direction:column;overflow:hidden}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px;border-radius:4px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
+.sr{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.skiplink{position:absolute;left:8px;top:-60px;background:#fff;padding:8px 12px;border-radius:8px;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.2)}.skiplink:focus{top:8px}
+h1,h2,h3,h4{margin:0}
+button{font:inherit;color:inherit}
+.mut{color:var(--mut)}.small{font-size:12px}.num{font-variant-numeric:tabular-nums}td.num{white-space:nowrap}
+/* header */
+.top{background:#fff;border-bottom:1px solid var(--line);padding:8px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:8px;min-width:0}.brand b{font-size:15px}.ver{font-size:11px;background:var(--pri2);color:var(--pri);border-radius:8px;padding:1px 7px;font-weight:600}
+.tag{background:var(--warnb);color:var(--warn);font-size:11px;padding:2px 8px;border-radius:10px;white-space:nowrap}
+.search{position:relative;flex:1;min-width:220px;max-width:520px}
+.search input{width:100%;padding:8px 10px 8px 32px;border:1px solid var(--line);border-radius:9px;font:inherit;background:#f8f9fb url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%23596274' stroke-width='2'%3E%3Ccircle cx='7' cy='7' r='5'/%3E%3Cpath d='M11 11l4 4'/%3E%3C/svg%3E") 9px 50% no-repeat}
+.search ul{position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 10px 30px rgba(20,30,50,.15);list-style:none;margin:0;padding:4px;z-index:40;max-height:60vh;overflow:auto}
+.search li{padding:7px 9px;border-radius:7px;cursor:pointer;display:flex;gap:8px;align-items:baseline}.search li[aria-selected=true],.search li:hover{background:var(--pri2)}
+.search li .k{font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--mut);width:58px;flex:none}.search li .s{font-size:12px;color:var(--mut);display:block}
+.seg{display:flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}.seg button{border:0;background:#fff;padding:6px 11px;cursor:pointer;font-size:13px}.seg button[aria-pressed=true]{background:var(--pri);color:#fff}
+.menu{position:relative}.menu summary{list-style:none;cursor:pointer}.menu summary::-webkit-details-marker{display:none}
+.menu .pop{position:absolute;right:0;top:calc(100% + 6px);background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 10px 30px rgba(20,30,50,.15);padding:8px;min-width:260px;z-index:45;display:flex;flex-direction:column;gap:4px;max-height:75vh;overflow:auto}
+.menu .pop .btn{justify-content:flex-start;width:100%;text-align:left}.menu .pop h4{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--mut);margin:6px 4px 2px}
+.bdg{background:var(--bad);color:#fff;border-radius:9px;padding:0 6px;font-size:11px;margin-left:5px}
+/* context bar */
+.ctxbar{background:var(--pri2);border-bottom:1px solid #cfdaf5;padding:6px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:13px}
+.ctxbar .who{display:flex;gap:6px;align-items:baseline;flex-wrap:wrap}.ctxbar b{font-size:14px}
+/* layout */
+main{flex:1;display:grid;grid-template-columns:minmax(300px,380px) 1fr;min-height:0}
+#chatpane{display:flex;flex-direction:column;min-height:0;border-right:1px solid var(--line);background:#fafbfc}
+#log{flex:1;overflow:auto;padding:14px}
+.msg{margin:0 0 10px;display:flex}.msg.u{justify-content:flex-end}
+.msg.u .bub{background:var(--pri);color:#fff;border-radius:12px 12px 3px 12px;max-width:85%}
+.msg.a .bub{background:#fff;border:1px solid var(--line);border-radius:3px 12px 12px 12px;max-width:100%}
+.bub{padding:8px 11px;font-size:13.5px}.bub p{margin:0 0 4px}.bub .btns{margin-top:6px}
+.und{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}.und span{font-size:11.5px;background:var(--line2);border-radius:6px;padding:1px 6px;color:#333b4d}
+.und .cf-medium{background:var(--warnb);color:var(--warn)}.und .cf-high{background:var(--okb);color:var(--ok)}
+.sugg{padding:0 14px 6px;display:flex;gap:6px;flex-wrap:wrap}.sugg .btn{border-radius:16px;font-size:12px;padding:4px 10px;color:var(--pri);background:#fff}
+#composer{display:flex;gap:6px;padding:8px 14px 12px}#composer input{flex:1;padding:9px 11px;border:1px solid var(--line);border-radius:9px;font:inherit}
+#wspane{display:flex;flex-direction:column;min-height:0;min-width:0}
+.wshead{display:flex;align-items:center;gap:10px;padding:12px 18px 8px;border-bottom:1px solid var(--line2);background:#fff}
+.wshead h2{font-size:17px;outline:none}.crumb{font-size:12px;color:var(--mut)}
+#ws{flex:1;overflow:auto;padding:16px 18px 30px}
+#trace{border-top:1px solid var(--line);background:#fff;max-height:34vh;overflow:auto}#trace summary{padding:7px 18px;cursor:pointer;font-size:12.5px;color:var(--mut)}
+#tracel{margin:0;padding:0 18px 10px 34px;font:11.5px/1.5 ui-monospace,Menlo,Consolas,monospace;color:var(--mut)}#tracel li.intent{color:#4a2c8f}#tracel li.err{color:var(--bad)}
+.mtabs{display:none}
+/* generic */
+.btn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 12px;cursor:pointer;font-size:13px;display:inline-flex;align-items:center;gap:6px;line-height:1.3}
+.btn:hover{border-color:#b9c2d3}.btn.p{background:var(--pri);color:#fff;border-color:var(--pri)}.btn.p:hover{background:#1b48a6}
+.btn.dng{background:var(--bad);color:#fff;border-color:var(--bad)}.btn.sm{padding:4px 9px;font-size:12px}.btn.ghost{border-color:transparent;background:transparent;color:var(--pri)}
+.btn:disabled,.btn[aria-disabled=true]{opacity:.5;cursor:not-allowed}
+.btns{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;margin:0 0 12px}
+.card>h3{font-size:13px;text-transform:uppercase;letter-spacing:.5px;color:var(--mut);margin:0 0 8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.row{display:flex;justify-content:space-between;gap:16px;padding:4px 0;border-bottom:1px dashed var(--line2)}.row:last-child{border:0}.row>span:first-child{color:var(--mut)}.row>span:last-child{text-align:right}
+.pill{font-size:11px;padding:1px 8px;border-radius:10px;white-space:nowrap;font-weight:600;display:inline-block}
+.p-ok{background:var(--okb);color:var(--ok)}.p-warn{background:var(--warnb);color:var(--warn)}.p-bad{background:var(--badb);color:var(--bad)}.p-info{background:var(--infob);color:var(--info)}.p-mut{background:var(--line2);color:var(--mut)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.tile{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;text-align:left;cursor:pointer}.tile:hover{border-color:var(--pri)}
+.tile b{display:block;font-size:22px;font-variant-numeric:tabular-nums}.tile span{font-size:12px;color:var(--mut)}.tile .l{font-size:12.5px;color:var(--tx);font-weight:600}
+.qa{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px}.qa .btn{flex-direction:column;align-items:flex-start;padding:10px 12px;text-align:left}.qa .btn small{color:var(--mut);font-size:12px}
+ol.nba{list-style:none;margin:0;padding:0}ol.nba li{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line2)}ol.nba li:last-child{border:0}
+.nb-main{min-width:0}.nb-main b{display:block}.nb-act{display:flex;gap:6px;align-items:center;flex:none}.val{font-weight:600;font-variant-numeric:tabular-nums;margin-right:4px;white-space:nowrap}.val small{font-weight:400;color:var(--mut)}
+.tagx{font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;font-weight:700;margin-right:6px}
+.t-blocker,.t-payment,.t-churn-risk{color:var(--bad)}.t-renewal{color:var(--warn)}.t-expansion,.t-close-deal,.t-conversion{color:var(--ok)}
+table.tbl{width:100%;border-collapse:collapse;font-size:13px}.tbl th{text-align:left;font-size:11.5px;color:var(--mut);font-weight:600;padding:6px 8px;border-bottom:1px solid var(--line)}.tbl td{padding:7px 8px;border-bottom:1px solid var(--line2);vertical-align:top}.tbl td.r,.tbl th.r{text-align:right}
+.lic{border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;background:#fff;display:flex;flex-direction:column;gap:6px}
+.lic h4{font-size:14px;display:flex;justify-content:space-between;gap:8px;align-items:baseline}.lic .facts{display:grid;grid-template-columns:1fr 1fr;gap:2px 12px;font-size:12.5px}.lic .facts span{color:var(--mut)}
+.blockbox{border-left:3px solid var(--bad);background:var(--badb);padding:8px 10px;border-radius:6px;font-size:13px}
+.note{border-left:3px solid var(--warn);background:var(--warnb);padding:7px 10px;border-radius:6px;font-size:13px;margin:6px 0}
+.infobox{border-left:3px solid var(--info);background:var(--infob);padding:7px 10px;border-radius:6px;font-size:13px;margin:6px 0}
+details.more>summary{cursor:pointer;color:var(--pri);font-size:12.5px;margin-top:4px}
+/* stepper + txn */
+.stepper{display:flex;gap:0;list-style:none;padding:0;margin:0 0 14px;counter-reset:s}
+.stepper li{flex:1;display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--mut);padding:6px 8px;border-bottom:3px solid var(--line)}
+.stepper li::before{counter-increment:s;content:counter(s);width:20px;height:20px;border-radius:50%;display:inline-grid;place-items:center;background:var(--line);color:#fff;font-size:11px;font-weight:700;flex:none}
+.stepper li.done{color:var(--ok);border-color:var(--ok)}.stepper li.done::before{background:var(--ok);content:"✓"}.stepper li[aria-current=step]{color:var(--pri);border-color:var(--pri);font-weight:600}.stepper li[aria-current=step]::before{background:var(--pri)}
+.split{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,380px);gap:14px;align-items:start}
+.fm{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px;background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:12px 14px}
+.fm .full{grid-column:1/-1}.fm .fld{display:flex;flex-direction:column;gap:3px;font-size:12.5px}.fm .fld>label{color:var(--mut)}
+.fm input,.fm select,.fm textarea{padding:7px 9px;border:1px solid var(--line);border-radius:8px;font:inherit;color:var(--tx);background:#fff;width:100%}
+.fm input[readonly]{background:#f3f4f7}.fm .ck{flex-direction:row;align-items:center;gap:8px}.fm .ck input{width:auto}.fm .ck label{color:var(--tx)}
+.fm .fld.af input,.fm .fld.af select{border-color:#8fb0ec;background:#f6f9ff}.agentfill{font-size:10.5px;color:#4a2c8f;background:#efe9fb;border-radius:6px;padding:0 5px;margin-left:5px}
+.fm .hid{display:none}.fm details.full summary{cursor:pointer;color:var(--pri);font-size:12.5px}.fm details.full>div{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px;margin-top:8px}
+.fm-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.mbar{display:none}
+.impact{position:sticky;top:0;background:#fff;border:1.5px solid #bcd0f4;border-radius:var(--r);padding:12px 14px;font-size:13px}
+.impact h3{font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--pri);margin:0 0 8px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.impact .big{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:6px 0;border-bottom:1px solid var(--line2)}.impact .big b{font-size:19px;font-variant-numeric:tabular-nums}.impact .big small{display:block;color:var(--mut);font-size:11.5px}
+.impact .delta.up{color:var(--ok)}.impact .delta.dn{color:var(--bad)}.src{font-size:10.5px;color:var(--warn);background:var(--warnb);border-radius:6px;padding:1px 6px;text-transform:none;letter-spacing:0;font-weight:600}
+.chg{width:100%;border-collapse:collapse;font-size:13px;margin:4px 0}.chg td{padding:4px 6px;border-bottom:1px dashed var(--line2)}.chg td:first-child{color:var(--mut)}.chg .arr{color:var(--mut);text-align:center;width:20px}.chg .to{font-weight:600}
+.errs{color:var(--bad);font-size:12.5px;margin:6px 0 0;padding-left:18px}
+.apbox{border:1.5px solid #f0c66b;background:var(--warnb);border-radius:8px;padding:8px 10px;margin:8px 0;font-size:13px}
+.res-head{display:flex;gap:10px;align-items:center;margin-bottom:10px}.res-head .ico{font-size:22px}.res-head h3{font-size:17px}
+.res.completed{border-color:#a9d9bd;background:#f6fcf8}.res.scheduled{border-color:#b8cff0;background:#f6f9fe}.res.pending_approval,.res.awaiting_customer,.res.awaiting_payment{border-color:#efd08f;background:#fffbf0}.res.payment_failed,.res.stale,.res.rejected,.res.expired{border-color:#f0b4ad;background:#fff7f6}
+ol.life{list-style:none;padding:0;margin:8px 0;display:flex;flex-wrap:wrap;gap:4px}ol.life li{font-size:12px;border-radius:14px;padding:3px 10px;border:1px solid var(--line);background:#fff}
+ol.life li.done{border-color:#a9d9bd;color:var(--ok)}ol.life li.wait{border-color:#efd08f;color:var(--warn);font-weight:600}ol.life li.fail{border-color:#f0b4ad;color:var(--bad);font-weight:600}ol.life li.todo{color:var(--mut);border-style:dashed}ol.life li.skip{color:var(--mut);opacity:.7}
+.notdone{border-left:3px solid var(--warn);background:var(--warnb);padding:7px 10px;border-radius:6px;font-size:13px;margin:8px 0}
+.meta{font:11.5px ui-monospace,Menlo,Consolas,monospace;color:var(--mut);margin-top:8px;word-break:break-all}
+.typed input{padding:7px 9px;border:1px solid var(--line);border-radius:8px;font:inherit}
+.banner{background:#1d2a44;color:#fff;padding:7px 14px;font-size:13px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}.banner .btn{background:transparent;color:#fff;border-color:#5b6b8c}
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#1d2a44;color:#fff;padding:9px 14px;border-radius:9px;font-size:13px;z-index:80;box-shadow:0 8px 24px rgba(0,0,0,.25);max-width:90vw}
+/* drawer */
+#drawer{position:fixed;inset:0 0 0 auto;width:600px;max-width:100%;background:#fff;border-left:1px solid var(--line);box-shadow:0 0 0 100vmax rgba(20,30,50,.35),-10px 0 30px rgba(0,0,0,.15);display:flex;flex-direction:column;z-index:60}
+#drawer[hidden]{display:none}.dr-h{padding:12px 16px;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:flex-start}.dr-h h2{font-size:16px}
+.tabs{display:flex;border-bottom:1px solid var(--line);padding:0 10px;overflow:auto}.tabs button{border:0;background:none;padding:9px 11px;cursor:pointer;font-size:13px;color:var(--mut);border-bottom:2px solid transparent;white-space:nowrap}.tabs button[aria-selected=true]{color:var(--pri);border-color:var(--pri);font-weight:600}
+#drb{flex:1;overflow:auto;padding:14px 16px}
+.cats{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}.cats button{border:1px solid var(--line);background:#fff;border-radius:12px;padding:2px 10px;font-size:12px;cursor:pointer}.cats button[aria-pressed=true]{background:var(--pri);color:#fff;border-color:var(--pri)}
+.tl{list-style:none;margin:0;padding:0 0 0 16px;border-left:2px solid var(--line)}.tl li{position:relative;padding:0 0 12px}.tl li::before{content:"";position:absolute;left:-23px;top:4px;width:10px;height:10px;border-radius:50%;background:#fff;border:2px solid var(--mut)}.tl li.fresh::before{background:var(--ok);border-color:var(--ok)}
+.tl .d{font-size:11.5px;color:var(--mut)}.tl .t{font-weight:600}.new{background:var(--okb);color:var(--ok);font-size:10.5px;padding:1px 6px;border-radius:8px;margin-left:6px}
+.arch{display:grid;gap:8px}.arch div{border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:#fff}.arch b{display:block}
+@media (max-width:1100px){.split{grid-template-columns:1fr}.impact{position:static}.mbar{display:flex;position:sticky;bottom:0;z-index:5;background:#fff;border:1.5px solid #bcd0f4;border-radius:10px;padding:8px 10px;gap:10px;align-items:center;justify-content:space-between;box-shadow:0 -4px 14px rgba(20,30,50,.08);font-size:13px}.mbar b{font-variant-numeric:tabular-nums}}
+@media (max-width:860px){
+ main{grid-template-columns:1fr}.mtabs{display:flex;background:#fff;border-bottom:1px solid var(--line)}.mtabs button{flex:1;border:0;background:none;padding:9px;font-weight:600;color:var(--mut);border-bottom:3px solid transparent}.mtabs button[aria-selected=true]{color:var(--pri);border-color:var(--pri)}
+ body[data-pane=chat] #wspane,body[data-pane=ws] #chatpane{display:none}#chatpane{border-right:0}
+ .tag{display:none}.top{gap:6px;padding:6px 10px}.brand{order:1}.brand b{font-size:14px}#bAppr{order:2;margin-left:auto}#menu{order:2}.seg{order:3;flex-basis:100%}.seg button{flex:1}.search{order:4;flex-basis:100%;max-width:none}.search input{padding-top:6px;padding-bottom:6px}
+ .ctxbar{flex-wrap:nowrap;padding:5px 10px;gap:6px;overflow:hidden}.ctxbar>.mut.small,.ctxbar .who .mut{display:none}.ctxbar .who{flex-wrap:nowrap;min-width:0}.ctxbar .who b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ctxbar .btns{flex-wrap:nowrap;margin-left:auto}.ctxbar .btns .btn:nth-child(2){display:none}
+ .wshead{padding:8px 12px}.wshead h2{font-size:15px}#ws{padding:12px}.stepper li{font-size:11.5px;padding:4px}#trace summary{padding:5px 12px}.fm{grid-template-columns:1fr}.lic .facts{grid-template-columns:1fr}
+ .seg button{padding:6px 8px;font-size:12px}ol.nba li{flex-direction:column;align-items:flex-start}#drawer{width:100%}
+ .tbl.resp thead{display:none}.tbl.resp tr{display:block;border-bottom:1px solid var(--line);padding:6px 0}.tbl.resp td{display:flex;justify-content:space-between;border:0;padding:3px 4px}.tbl.resp td::before{content:attr(data-l);color:var(--mut);font-size:12px;margin-right:10px}
+}
+</style></head>
+<body data-pane="chat">
+<a class="skiplink" href="#ws-h">Skip to workspace</a>
+<header class="top">
+ <div class="brand"><b>Store Sales Agent</b><span class="ver">v4</span><span class="tag" title="All data, prices, taxes and partner margins are mock values. Intent parsing is rule-based (LLM stand-in). No Zoho Store backend is connected.">Prototype · mock Store backend · rule-based intent (LLM stand-in)</span></div>
+ <div class="search"><label for="q" class="sr">Search customers, licenses, estimates, invoices</label>
+  <input id="q" type="search" autocomplete="off" placeholder="Search customer, email, license ID, EST-, INV-  (Ctrl+K)" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="qres">
+  <ul id="qres" role="listbox" aria-label="Search results" hidden></ul></div>
+ <div class="seg" role="group" aria-label="Signed-in role" id="roles"></div>
+ <button class="btn sm" id="bAppr" type="button">Approvals</button>
+ <details class="menu" id="menu"><summary class="btn sm" role="button">More ▾</summary><div class="pop" id="menupop"></div></details>
+</header>
+<div id="banner"></div>
+<div id="ctxbar" class="ctxbar" hidden></div>
+<nav class="mtabs" role="tablist" aria-label="Panels"><button role="tab" id="tabChat" aria-selected="true" data-pane="chat">Chat</button><button role="tab" id="tabWs" aria-selected="false" data-pane="ws">Workspace</button></nav>
+<main>
+ <section id="chatpane" aria-label="Conversation with the agent">
+  <div id="log" role="log" aria-live="polite" aria-relevant="additions"></div>
+  <div class="sugg" id="sugg" aria-label="Suggested requests"></div>
+  <form id="composer" autocomplete="off"><label for="in" class="sr">Message the agent</label><input id="in" placeholder="Describe the outcome — e.g. “Brightline needs 15 more CRM users”"><button class="btn p" type="submit">Send</button></form>
+ </section>
+ <section id="wspane" aria-labelledby="ws-h">
+  <div class="wshead"><button class="btn sm" id="wsBack" type="button" hidden aria-label="Back">←</button><div style="min-width:0"><div class="crumb" id="ws-crumb"></div><h2 id="ws-h" tabindex="-1"></h2></div></div>
+  <div id="ws"></div>
+  <details id="trace"><summary>Agent trace — intent JSON and Store API calls <span id="tracen" class="pill p-mut"></span></summary><ol id="tracel" reversed></ol></details>
+ </section>
+</main>
+<div id="drawer" role="dialog" aria-modal="true" aria-labelledby="drt" hidden>
+ <div class="dr-h"><div style="flex:1;min-width:0"><h2 id="drt"></h2><div class="mut small" id="drs"></div></div><button class="btn sm" id="drx" type="button" aria-label="Close customer record">✕</button></div>
+ <div class="tabs" role="tablist" id="drtabs" aria-label="Record sections"></div><div id="drb" role="tabpanel"></div>
+</div>
+<div id="sr-status" class="sr" role="status" aria-live="polite"></div>
+<script>'use strict';
+/* =====================================================================
+   LAYER 0 — MOCK STORE BACKEND  (stands in for Store APIs)
+   Everything authoritative lives here: authorization, partner scope,
+   policy, pricing, quotes, transactions, approvals, payments, audit.
+   The UI and the agent never mutate this state; they call Store.api.*
+   and receive copies. All prices, taxes and margins are MOCK values.
+   ===================================================================== */
+const Store=(()=>{
+const BIZ=Date.UTC(2026,9,16); // server-supplied business date (mock)
+const dstr=ms=>new Date(ms).toISOString().slice(0,10);
+const today=()=>dstr(BIZ),addDays=n=>dstr(BIZ+n*864e5);
+const daysTo=d=>Math.round((Date.parse(d+'T00:00:00Z')-BIZ)/864e5);
+const addYears=(d,n)=>(+d.slice(0,4)+n)+d.slice(4);
+const fmt=(ccy,n)=>(ccy==='INR'?'₹':'$')+Number(n||0).toLocaleString(ccy==='INR'?'en-IN':'en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const clone=o=>o==null?o:JSON.parse(JSON.stringify(o));
+const stable=o=>o&&typeof o==='object'&&!Array.isArray(o)?'{'+Object.keys(o).sort().map(k=>JSON.stringify(k)+':'+stable(o[k])).join(',')+'}':JSON.stringify(o);
+const strip=s=>String(s).replace(/<[^>]*>/g,'');
+
+/* ---------- catalog, tax, partner agreements (ALL MOCK) ---------- */
+const CAT={crm:{name:'Zoho CRM',plans:{Standard:14,Professional:23,Enterprise:40,Ultimate:52}},desk:{name:'Zoho Desk',plans:{Standard:14,Professional:20,Enterprise:40}},books:{name:'Zoho Books',plans:{Standard:15,Professional:40,Premium:60}},projects:{name:'Zoho Projects',plans:{Standard:5,Premium:9,Enterprise:16}},one:{name:'Zoho One',plans:{'All Employee':37,Flexible:90}}};
+const INR_PLANS={'All Employee Pricing':1025,'Flexible Pricing':2600};
+const ADDONS={one:[{k:'crmstor',n:'CRM – File Storage (GB)',pr:{INR:1800,USD:24}},{k:'wd100',n:'WorkDrive – 100GB Storage',priv:1,pr:{INR:6000,USD:80}},{k:'deskdept',n:'Desk – Department',priv:1,pr:{INR:9000,USD:120}},{k:'clq',n:'Cliq – Mini Networks',pr:{INR:2400,USD:32}},{k:'comm',n:'Commerce – Advanced Plan',priv:1,sv:1,pr:{INR:15000,USD:200},warn:'Contact Zoho One Support to validate requirements before enabling.'},{k:'payb',n:'Payroll – Blue Collar Employee',pr:{INR:3000,USD:40},warn:'Not available for the US edition — verify the Payroll organization’s edition.'}]};
+const TAX={'Canada/ON':[.13,'HST 13%'],'Canada/BC':[.12,'GST + PST 12%'],'USA/TX':[.0825,'Sales tax 8.25%'],'USA/NC':[.0725,'Sales tax 7.25%'],'USA/NY':[.08875,'Sales tax 8.875%'],'India':[.18,'GST 18%'],'Germany':[.19,'VAT 19%'],'Canada':[.05,'GST 5%'],'USA':[0,'No sales tax']};
+const FX={USD:1,INR:1/83};
+const PARTNERS={'P-1042':{code:'P-1042',name:'Northstar Solutions',model:'Reseller',agreement:'PA-2026-017',margin:{crm:.20,desk:.15,books:.15,projects:.15,one:.10},addr:{street:'55 Lakeshore Plaza',city:'Toronto',state:'ON',country:'Canada',zip:'M5J 0Z1'}},
+ 'P-2088':{code:'P-2088',name:'Maple Cloud Partners',model:'Reseller',agreement:'PA-2025-044',margin:{crm:.15,desk:.15,books:.12,projects:.12,one:.08},addr:{street:'18 Foundry Row',city:'Hamilton',state:'ON',country:'Canada',zip:'L8R 0Z2'}}};
+const POLICY={discApproveAbove:15,discMax:90,poApproveAboveUSD:10000,renewWindow:60,apprTTL:7,quoteTTLms:15*60*1000,pauseDays:7,extendDays:15,reactivationWindow:30,netTerms:30};
+const ASSUMPTIONS=['Price list, partner margins, tax rates and FX are illustrative mock values — not Zoho price lists or agreements.',
+ 'Reductions (users, plan, add-ons) take effect at the next recurring date; no mid-term credit is issued.',
+ 'Recording a purchase order lifts the overdue restriction on a license but does not settle the invoice.',
+ 'Licenses bought on an approved PO are enabled immediately and invoiced NET 30.',
+ 'A customer-approved estimate can be enabled before payment and invoiced NET 30.',
+ 'Extending a payment date does not lift the overdue restriction.',
+ 'Pausing does not move the recurring date or stop billing.',
+ 'Scheduled cancellations can be undone until the recurring date; cancelled subscriptions can be reactivated within 30 days.',
+ 'Store Admins may cancel, remove discounts and delete estimates directly; discounts above 15% and POs above $10k always need a second person (separation of duties).',
+ 'Multi-year renewals are billed upfront for the full term.',
+ 'Address changes to India or Germany require customer verification through an order-form link (carried over from v3).'];
+
+/* ---------- identity & authorization (server-side) ---------- */
+const ROLE_LABEL={sales:'Sales / AM',pam:'PAM',partner:'Partner Store',admin:'Store Admin'};
+const ACTORS={sales:{role:'sales',name:'Jordan Hale',title:'Account Manager'},pam:{role:'pam',name:'Sana Mehta',title:'Partner Account Manager',partners:['P-1042','P-2088']},partner:{role:'partner',name:'Theo Grant',title:'Northstar Solutions',partners:['P-1042']},admin:{role:'admin',name:'Nina Park',title:'Store Admin'}};
+const RI={sales:0,pam:1,partner:2,admin:3};
+//                 sales pam partner admin
+const PERM={read:[1,1,1,1],change:[1,1,1,1],discount:[1,0,0,1],renew:[1,1,1,1],buy:[1,1,1,1],convert:[1,1,1,1],enableEst:[1,1,1,1],reassignEst:[1,0,0,1],deleteEst:[1,1,0,1],discRemove:[1,0,0,1],pause:[1,1,0,1],cancel:[1,1,0,1],reactivate:[1,1,1,1],settle:[1,1,1,1],extend:[1,0,0,1],addr:[1,1,1,1],billTo:[1,1,0,1],recipAdd:[1,1,1,1],recipDel:[1,1,1,1],approve:[0,0,0,1]};
+const WHY={discount:'Discounts are managed by Sales or Store Admin.',reassignEst:'Reassigning estimates is a Sales / Store Admin action.',deleteEst:'Ask your PAM or Sales contact to delete estimates.',discRemove:'Discounts are managed by Sales or Store Admin.',pause:'Pausing is handled by your PAM or Sales contact.',cancel:'Cancellations go through your PAM or Sales contact.',extend:'Payment-date extensions are a Sales / Store Admin action.',billTo:'Changing who is billed is handled by your PAM.',approve:'Only Store Admins decide approvals.'};
+class ApiError extends Error{constructor(code,message,extra){super(message);this.code=code;Object.assign(this,extra||{})}}
+// Out-of-scope and non-existent records return the SAME error → no enumeration across partner boundaries.
+const NF=()=>new ApiError('NOT_FOUND','No matching record in your accounts.');
+function can(a,perm){const r=PERM[perm];if(!r)return{ok:false,why:'Unknown action.'};return r[RI[a.role]]?{ok:true}:{ok:false,why:WHY[perm]||'Not permitted for your role.'}}
+const inScope=(a,c)=>a.role==='sales'||a.role==='admin'||(a.partners||[]).includes(c.partner);
+
+/* ---------- data ---------- */
+let D;
+const lics=c=>Object.values(D.lic).filter(l=>l.cust===c.zoid);
+const scoped=a=>Object.values(D.cust).filter(c=>inScope(a,c));
+const isCard=pm=>/visa|mastercard|amex/i.test(pm||'');
+const svc=l=>CAT[l.p].name;
+function cust(a,z){const c=D.cust[z];if(!c||!inScope(a,c))throw NF();return c}
+function resolve(a,level,ref){
+ if(level==='lic'){const l=D.lic[ref];if(!l)throw NF();return{c:cust(a,l.cust),t:l}}
+ if(level==='est'){const e=D.est.find(x=>x.n===ref&&x.st!=='Deleted');if(!e)throw NF();return{c:cust(a,e.cust),t:e}}
+ if(level==='cust'){const c=cust(a,ref);return{c,t:c}}throw NF()}
+
+/* ---------- pricing service (MOCK, deterministic) ---------- */
+const unit=(l,plan)=>l.ccy==='INR'?INR_PLANS[plan]:CAT[l.p].plans[plan];
+function annual(l,o={}){const plan=o.plan??l.plan,users=o.users??l.users,disc=o.disc??(l.disc||0),ad=o.ad??(l.ad||{});const base=users*(unit(l,plan)||0)*12,add=(ADDONS[l.p]||[]).reduce((t,x)=>t+(+ad[x.k]||0)*x.pr[l.ccy],0);return{base,discAmt:base*disc/100,addons:add,total:base*(1-disc/100)+add}}
+function taxOf(c){const t=TAX[c.addr.country+'/'+c.addr.state]||TAX[c.addr.country]||[0,'No tax'];return{rate:t[0],label:t[1]+' (mock)'}}
+const margin=(c,p)=>c.partner?(PARTNERS[c.partner].margin[p]||0):0;
+// amount the billed party pays: partner-billed customers are invoiced at partner cost
+const bill=(c,p,list)=>c.billTo==='partner'&&c.partner?list*(1-margin(c,p)):list;
+function econ(c,p,listDue,listRec){if(!c.partner)return null;const P=PARTNERS[c.partner],m=margin(c,p);return{name:P.name,code:P.code,agreement:P.agreement,model:P.model,billTo:c.billTo,marginPct:Math.round(m*100),due:{list:listDue,cost:listDue*(1-m),margin:listDue*m},recurring:{list:listRec,cost:listRec*(1-m),margin:listRec*m}}}
+function due(c,sub,basis,days){const t=taxOf(c);return{sub,tax:sub*t.rate,taxLabel:t.label,total:sub*(1+t.rate),basis,days}}
+
+/* ---------- history / audit ---------- */
+function ev(c,cat,t,det,ref,a,m){const by=a?`${a.name} · ${ROLE_LABEL[a.role]}`:'System';const e={d:today(),cat,t,det:det+(m&&m.approvedBy?` · approved by ${m.approvedBy} (${m.approval})`:''),ref:ref||'—',by,fresh:!!a};c.hist.unshift(e);D.audit.unshift({...e,cust:c.zoid,org:c.org});return e}
+
+/* ---------- invoices & payments ---------- */
+function newInv(c,l,amt,kind,extra={}){const i={n:'INV-'+(++D.seq.inv),cust:c.zoid,lic:l?l.id:'—',amt,ccy:c.ccy,due:addDays(POLICY.netTerms),st:'Open',kind,d:today(),...extra};D.inv.unshift(i);return i}
+const hasOverdue=l=>D.inv.some(i=>i.lic===l.id&&i.st==='Overdue');
+function charge(a,c,l,inv){ // simulated gateway: cards ending 0007 decline
+ if(/0007/.test(l.pm)){D.pay.unshift({id:'PAY-'+(9922+D.pay.length),cust:c.zoid,lic:l.id,inv:inv.n,amt:inv.amt,d:today(),why:'Card declined (insufficient funds)',st:'Failed'});ev(c,'Payment','Payment failed',`${inv.n} · ${fmt(c.ccy,inv.amt)} · ${l.pm} declined`,l.id,a);return false}
+ markPaid(a,c,inv,l.pm);return true}
+function markPaid(a,c,inv,via){inv.st='Paid';inv.paid=today();D.pay.filter(p=>p.inv===inv.n&&p.st!=='Recovered').forEach(p=>p.st='Recovered');
+ ev(c,'Payment','Payment received',`${inv.n} · ${fmt(c.ccy,inv.amt)} · ${via}`,inv.lic,a);const l=D.lic[inv.lic];if(!l)return;
+ if(inv.kind==='renewal'&&!inv.applied){inv.applied=1;const o=l.exp;l.exp=inv.newExp;l.v++;const ord=D.ord.find(x=>x.inv===inv.n);if(ord)ord.st='Completed';ev(c,'Order','Renewal applied',`${svc(l)} · recurring date ${o} → ${l.exp}`,l.id,a)}
+ if(inv.kind==='reactivation'&&!inv.applied){inv.applied=1;l.st='Active';l.exp=inv.newExp;delete l.cancelledAt;l.v++;ev(c,'Subscription','Subscription reactivated',`${svc(l)} · active until ${l.exp}`,l.id,a)}
+ if(l.st==='Overdue'&&!hasOverdue(l)){l.st='Active';l.v++;ev(c,'Subscription','Restriction lifted','No overdue invoices remain',l.id,a)}}
+function newLicense(c,p,plan,users,exp){const pre=(lics(c)[0]?.id.split('/')[0])||'2599999';const l={id:pre+'/'+(++D.seq.lic),cust:c.zoid,ccy:c.ccy,p,plan,users,st:'Active',exp,disc:0,ad:{},adAct:{},pm:'Invoice (NET 30)',auto:false,v:1};D.lic[l.id]=l;return l}
+
+/* ---------- results ---------- */
+const S=(label,st)=>({label,st}); // st: done | wait | todo | skip | fail
+const apSt=m=>m&&m.approvedBy?S('Approved by '+m.approvedBy,'done'):S('No approval needed','skip');
+const R=o=>({state:'completed',rows:[],stages:[],notDone:'',next:[],...o});
+const blk=(reason,fixes,na)=>({reason,fixes:fixes||[],na:!!na});
+
+/* ---------- policy engine (single source for thresholds) ---------- */
+function policyCheck(a,checks){const R2=[];
+ for(const[k,i]of checks||[]){
+  if(k==='discount'&&i.after>POLICY.discApproveAbove&&i.after!==i.before)R2.push(['DISC>15%',`resulting discount ${i.after}% is above ${POLICY.discApproveAbove}%`,true]);
+  if(k==='po'&&i.usd>POLICY.poApproveAboveUSD)R2.push(['PO>$10k',`PO amount ≈ $${Math.round(i.usd).toLocaleString('en-US')} exceeds $10,000`,true]);
+  if(k==='cancel')R2.push(['CANCEL','cancellations need Store Admin approval',false]);
+  if(k==='discRemove')R2.push(['DISC-REMOVE','removing a discount changes what the customer is billed',false]);
+  if(k==='deleteEst'&&i.status!=='Draft')R2.push(['EST-DELETE','the estimate was already sent to the customer',false])}
+ const need=R2.filter(r=>r[2]||a.role!=='admin');if(!need.length)return null;
+ return{approver:a.role==='admin'?'Second Store Admin':'Store Admin',rules:need.map(r=>r[0]),why:need.map(r=>r[1]).join('; ')}}
+
+/* ---------- license eligibility ---------- */
+function licBlock(a,c,l){
+ if(l.st==='Trial')return blk(`This is a trial ending ${l.exp} — convert it to a paid subscription first.`,[['Convert trial','convert',l.id]]);
+ if(l.st==='Cancelled')return blk(`Cancelled on ${l.cancelledAt}.`,[['Reactivate','reactivate',l.id]]);
+ if(l.st==='Cancelling')return blk(`Cancellation is scheduled for ${l.exp}.`,[['Undo cancellation','reactivate',l.id]]);
+ if(l.st==='Paused')return blk(`Paused until ${l.pausedUntil} — resume it first.`,[['Resume','pause',l.id]]);
+ if(l.st==='Overdue'){const i=D.inv.find(x=>x.lic===l.id&&x.st==='Overdue');return blk(`${i.n} (${fmt(c.ccy,i.amt)}) has been overdue since ${i.due} (${-daysTo(i.due)} days) — changes and renewal are restricted until it is settled.`,[['Collect '+i.n,'settle',c.zoid],...(can(a,'extend').ok?[['Extend payment date','extend',c.zoid]]:[])])}
+ return null}
+const openInv=c=>D.inv.filter(i=>i.cust===c.zoid&&['Open','Overdue'].includes(i.st)).sort((x,y)=>(x.st==='Overdue'?0:1)-(y.st==='Overdue'?0:1));
+const AF=['street','city','state','country','zip'],AL={street:'Street',city:'City',state:'State / Province',country:'Country',zip:'ZIP / Postal code'};
+
+/* =====================================================================
+   OPERATIONS — each: perm, level, label, elig(), preview(), apply().
+   preview() validates and prices; apply() mutates. Callers go through
+   quote() → execute() (or decide() for approvals).
+   ===================================================================== */
+const OPS={
+change:{perm:'change',level:'lic',label:'Change subscription',
+ hint:a=>a.role==='admin'?'Discount >15% or PO >$10k need a second approver':(can(a,'discount').ok?'Approval if discount >15% or PO >$10k':'Approval if PO >$10k'),
+ elig:licBlock,
+ preview(a,c,l,p){const E=[],N=[],ch=[],ccy=l.ccy,plans=Object.keys(l.ccy==='INR'?INR_PLANS:CAT[l.p].plans);
+  const n={plan:p.plan??l.plan,users:Number(p.users??l.users),disc:Number(p.disc??(l.disc||0)),discExp:p.discExp||'',ad:{},eff:p.eff==='renewal'?'renewal':'now',lt:p.lt==='PO'?'PO':'Invoice',po:String(p.po||'').trim(),note:String(p.note||'').trim(),sv:!!p.sv};
+  for(const x of ADDONS[l.p]||[])n.ad[x.k]=Number((p.ad||{})[x.k]??(l.ad[x.k]||0));
+  const od=l.disc||0,dch=n.disc!==od;if(!dch)n.discExp=l.discExp||'';
+  if(!plans.includes(n.plan))E.push('Choose a valid plan.');
+  if(!Number.isInteger(n.users)||n.users<1)E.push('Users must be a whole number of at least 1.');
+  if(dch&&!can(a,'discount').ok)E.push(WHY.discount);
+  if(!(n.disc>=0&&n.disc<=POLICY.discMax))E.push('Discount must be between 0 and 90%.');
+  if(dch&&n.disc>0&&!n.discExp)E.push('Set a discount expiry date.');
+  if(dch&&n.disc===0)E.push('To remove a discount use “Remove discount” (it needs approval).');
+  let red=false;
+  if(plans.includes(n.plan)&&n.plan!==l.plan){ch.push(['Plan',l.plan,n.plan]);if(unit(l,n.plan)<unit(l,l.plan))red=true}
+  if(n.users!==l.users){ch.push(['Users',l.users,n.users]);if(n.users<l.users)red=true}
+  for(const x of ADDONS[l.p]||[]){const q=n.ad[x.k],q0=l.ad[x.k]||0;if(!Number.isInteger(q)||q<0){E.push(x.n+': whole number, 0 or more.');continue}
+   if(q!==q0){ch.push([x.n,q0,q]);if(q<q0)red=true;if(q>q0&&x.warn)N.push(x.n+': '+x.warn);if(q>q0&&x.priv)N.push(x.n+' is a private add-on — hidden from the customer flow.');if(q>q0&&x.sv&&!n.sv)E.push('Confirm Zoho One Support has validated the '+x.n+' requirement.')}}
+  if(dch)ch.push(['Recurring discount',od+'%',n.disc+'%'+(n.discExp?' until '+n.discExp:'')]);
+  if(red&&n.eff==='now')E.push('Reductions apply at the next recurring date — choose “At next recurring date”.');
+  if(n.lt==='PO'&&!n.po)E.push('Enter the PO number.');
+  if(ch.length&&['sales','admin'].includes(a.role)&&!n.note)E.push('Add a sales note — it is pushed to the CRM deal.');
+  let money=null;const numsOk=plans.includes(n.plan)&&Number.isInteger(n.users)&&n.users>=1&&Object.values(n.ad).every(q=>Number.isInteger(q)&&q>=0)&&n.disc>=0&&n.disc<=90;
+  if(numsOk){const before=annual(l),after=annual(l,{plan:n.plan,users:n.users,disc:n.disc,ad:n.ad}),atCur=annual(l,{plan:n.plan,users:n.users,ad:n.ad});
+   const incr=Math.max(0,atCur.total-before.total),days=Math.max(0,Math.min(daysTo(l.exp),365)),listNow=n.eff==='now'?incr*days/365:0;
+   money={ccy,dueNow:due(c,bill(c,l.p,listNow),n.eff==='now'?`Prorated ${days} of 365 days to ${l.exp}`:'Nothing charged today',days),recurring:{before:bill(c,l.p,before.total),after:bill(c,l.p,after.total),next:l.exp},effective:n.eff==='now'?today():l.exp,
+    discount:dch?{before:od,after:n.disc,expiry:n.discExp,annual:bill(c,l.p,after.total-atCur.total)}:null,partner:econ(c,l.p,listNow,after.total),pay:n.lt==='PO'?'Purchase order '+(n.po||'…'):(isCard(l.pm)?'Charge '+l.pm:'Invoice (NET 30)')};
+   if(dch)N.unshift('Discount changes apply from the next recurring date; today’s prorated charge uses the current discount.');
+   if(n.eff==='renewal')N.push(`Scheduled — nothing changes today. New values apply on ${l.exp}.`)}
+  return{errors:E,notes:N,changes:ch,norm:n,money,policy:[['discount',{before:od,after:n.disc}],...(n.lt==='PO'&&money?[['po',{usd:money.dueNow.total*FX[ccy]}]]:[])],label:n.eff==='now'?'Update subscription':'Schedule change'}},
+ apply(a,c,l,n,pv,m){const was=`${l.users} users · ${l.plan}`,summ=pv.changes.map(r=>`${r[0]} ${strip(r[1])} → ${strip(r[2])}`).join('; ');
+  if(n.eff==='renewal'){l.sched={plan:n.plan,users:n.users,ad:n.ad,disc:n.disc,discExp:n.discExp,from:l.exp};ev(c,'Subscription','Change scheduled',`${svc(l)} · ${summ} · from ${l.exp} · note: ${n.note||'—'}`,l.id,a,m);
+   return R({state:'scheduled',title:'Change scheduled for '+l.exp,rows:[['License',l.id],['Changes',summ],['Applies on',l.exp],['Recurring from then',fmt(c.ccy,pv.money.recurring.after)+' / yr']],stages:[S('Quote','done'),apSt(m),S('Scheduled','done'),S('Applied on '+l.exp,'todo')],notDone:`The subscription is unchanged today; the new values apply on ${l.exp}.`})}
+  Object.assign(l,{plan:n.plan,users:n.users,ad:n.ad,disc:n.disc});if(n.disc)l.discExp=n.discExp;else delete l.discExp;
+  const tot=pv.money.dueNow.total;let pay=S('No charge today','skip'),notDone='',inv=null;
+  if(tot>0.004){inv=newInv(c,l,tot,'change',n.lt==='PO'?{po:n.po}:{});
+   if(isCard(l.pm)&&n.lt!=='PO'){const ok=charge(a,c,l,inv);pay=ok?S('Paid · '+l.pm,'done'):S('Card declined','fail');if(!ok)notDone=`The change is applied but ${l.pm} was declined — ${inv.n} is open. Send a payment link.`}
+   else{pay=S(`Invoice ${inv.n} · due ${inv.due}`,'wait');notDone=`${fmt(c.ccy,tot)} is still to be paid on ${inv.n} (due ${inv.due}).`}}
+  ev(c,'Subscription','Subscription changed',`${svc(l)} · ${summ}${inv?' · '+inv.n+' '+fmt(c.ccy,tot):''} · note: ${n.note||'—'}`,l.id,a,m);
+  return R({title:'Subscription updated',rows:[['License',l.id],['Was',was],['Now',`${l.users} users · ${l.plan}${l.disc?' · '+l.disc+'% discount':''}`],['Charged now',fmt(c.ccy,tot)+(inv?' · '+inv.n:'')],['Recurring',fmt(c.ccy,pv.money.recurring.after)+' / yr from '+l.exp]],stages:[S('Quote','done'),apSt(m),S('Subscription updated','done'),pay],notDone,next:notDone&&inv&&inv.st!=='Paid'&&isCard(l.pm)?[['Send payment link','settle',c.zoid]]:[]})}},
+
+renew:{perm:'renew',level:'lic',label:'Renew',
+ elig(a,c,l){const b=licBlock(a,c,l);if(b)return b;
+  const p=D.inv.find(i=>i.lic===l.id&&i.kind==='renewal'&&['Open','Overdue','PO received'].includes(i.st));
+  if(p)return blk(`This renewal is already invoiced on ${p.n} (${fmt(c.ccy,p.amt)}, ${p.st.toLowerCase()}) — collect that payment instead of creating a second renewal.`,[['Collect '+p.n,'settle',c.zoid]]);
+  const d=daysTo(l.exp);if(d>POLICY.renewWindow)return blk(`The renewal window opens ${addDays(d-POLICY.renewWindow)} (${POLICY.renewWindow} days before ${l.exp}).`,[],false);return null},
+ preview(a,c,l,p){const E=[],term=Number(p.term||1),pay=p.pay==='card'?'card':'link';if(![1,2,3].includes(term))E.push('Term must be 1, 2 or 3 years.');if(pay==='card'&&!isCard(l.pm))E.push('No card on file — send a payment link instead.');
+  const yr=annual(l).total,ne=addYears(l.exp,Math.max(1,Math.min(3,term||1))),list=yr*term;
+  return{errors:E,notes:['The recurring date moves only after payment is received.',...(term>1?['Multi-year renewals are billed upfront for the full term (assumption).']:[])],
+   changes:[['Recurring date',l.exp,ne],['Term','—',term+(term>1?' years':' year')],['Collect via','—',pay==='card'?'Charge '+l.pm:'Payment link to invoice recipients']],norm:{term,pay},
+   money:{ccy:c.ccy,dueNow:due(c,bill(c,l.p,list),`${term} year(s) at the current price${l.disc?', incl. '+l.disc+'% discount':''}`),recurring:{before:bill(c,l.p,yr),after:bill(c,l.p,yr),next:ne},effective:l.exp,partner:econ(c,l.p,list,yr),pay:pay==='card'?'Charge '+l.pm:'Payment link'},
+   policy:[],label:pay==='card'?'Charge card & renew':'Create renewal & send link'}},
+ apply(a,c,l,n,pv,m){const inv=newInv(c,l,pv.money.dueNow.total,'renewal',{newExp:addYears(l.exp,n.term)});const ord={n:'ORD-'+(++D.seq.ord),cust:c.zoid,lic:l.id,type:'Renewal',amt:inv.amt,st:'Awaiting payment',inv:inv.n,d:today()};D.ord.unshift(ord);
+  ev(c,'Order','Renewal order created',`${ord.n} · ${svc(l)} · ${n.term} yr · ${fmt(c.ccy,inv.amt)} · ${inv.n}`,l.id,a,m);
+  const base=[S('Quote','done'),apSt(m),S('Renewal order '+ord.n,'done')];
+  if(n.pay==='card'){if(charge(a,c,l,inv))return R({title:'Renewed — paid by card',rows:[['Order',ord.n],['Invoice',inv.n+' · paid'],['New recurring date',inv.newExp]],stages:[...base,S('Paid · '+l.pm,'done'),S('Renewal applied','done')]});
+   return R({state:'payment_failed',title:'Card declined — not renewed',rows:[['Order',ord.n],['Invoice',inv.n+' · open'],['Recurring date',l.exp+' (unchanged)']],stages:[...base,S('Card declined','fail'),S('Renewal applied','todo')],notDone:`The subscription has NOT been renewed. Send a payment link for ${inv.n}.`,next:[['Send payment link','settle',c.zoid]]})}
+  inv.linkSent=today();
+  return R({state:'awaiting_payment',title:'Renewal created — payment link sent',rows:[['Order',ord.n],['Invoice',inv.n+' · '+fmt(c.ccy,inv.amt)],['Link sent to',c.rcp.invoice.map(r=>r.e).join(', ')],['Recurring date',`${l.exp} (moves to ${inv.newExp} on payment)`]],stages:[...base,S('Payment link sent','done'),S('Payment','wait'),S('Renewal applied','todo')],notDone:`The subscription is NOT renewed yet. It moves to ${inv.newExp} when ${inv.n} is paid.`,links:{copy:'Copy payment link'}})}},
+
+buy:{perm:'buy',level:'cust',label:'New purchase',hint:a=>a.role==='admin'?'PO >$10k needs a second approver':'Approval if PO >$10k',
+ preview(a,c,_,p){const E=[],N=[],prod=CAT[p.p]?p.p:'desk',P=CAT[prod],plans=Object.keys(P.plans),plan=plans.includes(p.plan)?p.plan:plans[Math.min(1,plans.length-1)],users=Number(p.users),period=p.period==='monthly'?'monthly':'yearly',route=p.route==='po'?'po':'estimate',po=String(p.po||'').trim(),legal=!!p.legal,conv=p.convert||null;
+  if(c.ccy!=='USD')E.push('New purchases for INR price-list customers use the regional price list — not covered by this prototype.');
+  if(!Number.isInteger(users)||users<1)E.push('Users must be a whole number of at least 1.');
+  const ex=lics(c).find(l=>l.p===prod&&l.st!=='Cancelled'&&l.id!==conv);if(ex)E.push(ex.st==='Trial'?`${P.name} is on trial here (${ex.id}) — convert the trial instead.`:`${P.name} is already licensed (${ex.id}) — use Change subscription instead.`);
+  if(route==='po'){if(!po)E.push('Enter the PO number.');if(!legal)E.push('Confirm Legal has approved the PO.')}
+  const u=Number.isInteger(users)&&users>0?users:0,yr=u*P.plans[plan]*12,listDue=period==='monthly'?yr/12:yr;
+  if(c.partner)N.push(`Partner agreement ${PARTNERS[c.partner].agreement}: ${Math.round(margin(c,prod)*100)}% margin · billed to ${c.billTo}.`);
+  N.push(route==='estimate'?'An estimate does not create a license. The license is enabled after the customer approves.':'Assumption: licenses on an approved PO are enabled immediately and invoiced NET 30.');
+  const money={ccy:c.ccy,dueNow:due(c,bill(c,prod,listDue),period==='monthly'?'First month':'First year'),recurring:{before:0,after:bill(c,prod,yr),next:period==='monthly'?addDays(30):addDays(365)},effective:route==='po'?today():'On customer approval',partner:econ(c,prod,listDue,yr),pay:route==='po'?'Purchase order '+(po||'…'):'Customer pays via estimate'};
+  return{errors:E,notes:N,changes:[[conv?'Convert trial '+conv:'Product','—',`${P.name} ${plan} · ${u} users · ${period}`],['Route','—',route==='po'?'Purchase order '+(po||'…'):'Estimate → customer approval']],norm:{p:prod,plan,users:u,period,route,po,legal,convert:conv},money,
+   policy:route==='po'?[['po',{usd:money.dueNow.total*FX[c.ccy]}]]:[],label:route==='po'?'Enable on PO':'Create & send estimate'}},
+ apply(a,c,_,n,pv,m){const P=CAT[n.p];
+  if(n.route==='estimate'){const e={n:'EST-'+(++D.seq.est),cust:c.zoid,p:n.p,plan:n.plan,users:n.users,period:n.period,amt:pv.money.dueNow.total,ccy:c.ccy,st:'Sent',d:today(),convert:n.convert,v:1};D.est.unshift(e);
+   ev(c,'Estimate','Estimate sent',`${e.n} · ${P.name} ${n.plan} · ${n.users} users · ${fmt(c.ccy,e.amt)}`,'—',a,m);
+   return R({state:'awaiting_customer',title:`Estimate ${e.n} sent to the customer`,rows:[['Estimate',e.n],['Amount',fmt(c.ccy,e.amt)],['Sent to',c.rcp.purchase.map(r=>r.e).join(', ')]],stages:[S('Quote','done'),apSt(m),S('Estimate sent','done'),S('Customer approval','wait'),S('License enabled','todo'),S('Payment','todo')],notDone:'No license exists yet. When the customer approves, enable it from Estimates.',links:{copy:'Copy customer approval link'}})}
+  let l;if(n.convert){l=D.lic[n.convert];Object.assign(l,{st:'Active',plan:n.plan,users:n.users,exp:n.period==='monthly'?addDays(30):addDays(365),pm:'Invoice (NET 30)',auto:false})}else l=newLicense(c,n.p,n.plan,n.users,n.period==='monthly'?addDays(30):addDays(365));
+  const inv=newInv(c,l,pv.money.dueNow.total,'new',{po:n.po});ev(c,'Order',n.convert?'Trial converted on PO':'License enabled on PO',`${P.name} ${n.plan} · ${n.users} users · PO ${n.po} · ${inv.n}`,l.id,a,m);
+  return R({title:n.convert?'Trial converted to paid':'License enabled on PO',rows:[['License',l.id],['Invoice',`${inv.n} · ${fmt(c.ccy,inv.amt)} · due ${inv.due}`],['PO',n.po]],stages:[S('Quote','done'),apSt(m),S('PO recorded','done'),S('License enabled','done'),S('Payment (NET 30)','wait')],notDone:`Payment of ${fmt(c.ccy,inv.amt)} is due on ${inv.due}. The PO is a commitment, not a payment.`})}},
+
+convert:{perm:'convert',level:'lic',label:'Convert trial',hint:a=>a.role==='admin'?'':'Approval if PO >$10k',
+ elig:(a,c,l)=>l.st==='Trial'?null:blk('Only trials can be converted.',[],true),
+ preview:(a,c,l,p)=>OPS.buy.preview(a,c,null,{users:l.users,plan:l.plan,...p,p:l.p,convert:l.id}),
+ apply:(a,c,l,n,pv,m)=>OPS.buy.apply(a,c,null,n,pv,m)},
+
+enableEst:{perm:'enableEst',level:'est',label:'Enable license from estimate',
+ elig(a,c,e){if(e.st==='Approved by customer')return null;if(e.st==='Sent')return blk(`Waiting for the customer to approve ${e.n}.`,[],true);if(e.st==='Draft')return blk(`${e.n} is a draft — it has not been sent to the customer.`,[],true);return blk(`${e.n} is ${e.st.toLowerCase()}.`,[],true)},
+ preview(a,c,e){const yr=e.users*CAT[e.p].plans[e.plan]*12;return{errors:[],notes:['Assumption: an approved estimate can be enabled before payment and invoiced NET 30.'],changes:[['Estimate',e.st,'Converted'],['License','—',`${e.convert?'Convert trial '+e.convert:'New'} · ${CAT[e.p].name} ${e.plan} · ${e.users} users`]],norm:{},
+  money:{ccy:c.ccy,dueNow:{sub:e.amt,tax:0,total:e.amt,taxLabel:'as on the estimate',basis:'Amount on '+e.n},recurring:{before:0,after:bill(c,e.p,yr),next:addDays(365)},effective:today(),partner:econ(c,e.p,e.amt,yr),pay:'Invoice (NET 30)'},policy:[],label:'Enable license'}},
+ apply(a,c,e,n,pv,m){let l;if(e.convert&&D.lic[e.convert]){l=D.lic[e.convert];Object.assign(l,{st:'Active',plan:e.plan,users:e.users,exp:addDays(365),pm:'Invoice (NET 30)'})}else l=newLicense(c,e.p,e.plan,e.users,addDays(365));
+  e.st='Converted';e.lic=l.id;const inv=newInv(c,l,e.amt,'new',{est:e.n});ev(c,'Order','License enabled from estimate',`${e.n} → ${l.id} · ${CAT[e.p].name} ${e.plan} · ${e.users} users · ${inv.n}`,l.id,a,m);
+  return R({title:'License enabled',rows:[['License',l.id],['From',e.n],['Invoice',`${inv.n} · due ${inv.due}`]],stages:[S('Customer approved','done'),S('License enabled','done'),S('Invoice raised','done'),S('Payment','wait')],notDone:`Payment of ${fmt(c.ccy,inv.amt)} is due on ${inv.due}.`})}},
+
+reassignEst:{perm:'reassignEst',level:'est',label:'Reassign estimate',
+ elig:(a,c,e)=>['Converted','Deleted'].includes(e.st)?blk(`${e.n} is ${e.st.toLowerCase()}.`,[],true):null,
+ preview(a,c,e,p){const to=String(p.to||'').trim().toLowerCase(),E=[];let t=null;if(to){t=scoped(a).find(x=>x.email===to);if(!t)E.push('No matching account in your scope.');else if(t.zoid===c.zoid)E.push('Pick a different customer.')}
+  return{errors:E,notes:['The estimate link the customer received stops working; a new link goes to the new customer.'],changes:t&&t.zoid!==c.zoid?[['Customer',c.org,t.org]]:[],norm:{to},money:null,policy:[],label:'Reassign estimate'}},
+ apply(a,c,e,n,pv,m){const t=scoped(a).find(x=>x.email===n.to);e.cust=t.zoid;ev(c,'Estimate','Estimate reassigned out',`${e.n} → ${t.org}`,'—',a,m);ev(t,'Estimate','Estimate reassigned in',`${e.n} from ${c.org}`,'—',a,m);
+  return R({title:`${e.n} moved to ${t.org}`,rows:[['Estimate',e.n],['Now with',t.org]],stages:[S('Reassigned','done'),S('New approval link sent','done')]})}},
+
+deleteEst:{perm:'deleteEst',level:'est',label:'Delete estimate',danger:1,hint:a=>a.role==='admin'?'':'Approval unless draft',
+ elig:(a,c,e)=>['Converted','Deleted'].includes(e.st)?blk(`${e.n} is ${e.st.toLowerCase()}.`,[],true):null,
+ preview(a,c,e,p){const reason=p.reason||'Created in error';return{errors:[],notes:[e.st!==  'Draft'?'Its customer approval / payment link stops working.':'Draft — never sent to the customer.','Deleted estimates are kept in the audit trail.'],changes:[['Estimate',`${e.n} (${e.st})`,'Deleted']],norm:{reason},money:null,policy:[['deleteEst',{status:e.st}]],label:'Delete estimate'}},
+ confirm:(c,e)=>({typed:e.n}),
+ apply(a,c,e,n,pv,m){e.st='Deleted';e.v++;ev(c,'Estimate','Estimate deleted',`${e.n} · ${CAT[e.p].name} · ${n.reason}`,'—',a,m);return R({title:e.n+' deleted',rows:[['Estimate',e.n],['Reason',n.reason]],stages:[S('Deleted (kept in audit)','done')]})}},
+
+discRemove:{perm:'discRemove',level:'lic',label:'Remove discount',danger:1,hint:a=>a.role==='admin'?'':'Needs Store Admin approval',
+ elig:(a,c,l)=>(l.disc||0)>0?null:blk('This subscription has no discount.',[],true),
+ preview(a,c,l,p){const reason=p.reason||'Contract ended',b=annual(l),af=annual(l,{disc:0});return{errors:[],notes:['Applies from the next recurring date ('+l.exp+').'],changes:[['Recurring discount',l.disc+'%','None'],['Recurring / yr',fmt(c.ccy,bill(c,l.p,b.total)),fmt(c.ccy,bill(c,l.p,af.total))]],norm:{reason},
+  money:{ccy:c.ccy,dueNow:null,recurring:{before:bill(c,l.p,b.total),after:bill(c,l.p,af.total),next:l.exp},effective:l.exp,discount:{before:l.disc,after:0,expiry:'—',annual:bill(c,l.p,af.total-b.total)},partner:econ(c,l.p,0,af.total)},policy:[['discRemove',{}]],label:'Remove discount'}},
+ confirm:(c,l)=>({typed:l.id}),
+ apply(a,c,l,n,pv,m){const o=l.disc;l.disc=0;delete l.discExp;ev(c,'Change','Discount removed',`${svc(l)} · ${o}% → none from ${l.exp} · ${n.reason}`,l.id,a,m);return R({title:'Discount removed',rows:[['License',l.id],['Was',o+'%'],['Recurring',fmt(c.ccy,pv.money.recurring.after)+' / yr from '+l.exp]],stages:[S('Quote','done'),apSt(m),S('Discount removed','done')]})}},
+
+pause:{perm:'pause',level:'lic',label:'Pause / resume',
+ elig(a,c,l){if(['Active','Paused'].includes(l.st))return null;return licBlock(a,c,l)||blk('Only active subscriptions can be paused.',[],true)},
+ preview(a,c,l,p){if(l.st==='Paused')return{errors:[],notes:[],changes:[['Status','Paused until '+l.pausedUntil,'Active']],norm:{resume:true},money:null,policy:[],label:'Resume now'};
+  const reason=p.reason||'Customer request';return{errors:[],notes:[`Resumes automatically on ${addDays(POLICY.pauseDays)}.`,'Assumption: billing continues and the recurring date does not move.'],changes:[['Status','Active','Paused until '+addDays(POLICY.pauseDays)]],norm:{reason},money:null,policy:[],label:'Pause 7 days'}},
+ apply(a,c,l,n,pv,m){if(n.resume){l.st='Active';delete l.pausedUntil;ev(c,'Subscription','Subscription resumed',svc(l),l.id,a,m);return R({title:'Subscription resumed',rows:[['License',l.id],['Status','Active']],stages:[S('Resumed','done')]})}
+  l.st='Paused';l.pausedUntil=addDays(POLICY.pauseDays);ev(c,'Subscription','Subscription paused',`${svc(l)} · ${n.reason} · until ${l.pausedUntil}`,l.id,a,m);return R({title:'Paused until '+l.pausedUntil,rows:[['License',l.id],['Resumes',l.pausedUntil]],stages:[S('Paused','done'),S('Auto-resume '+l.pausedUntil,'todo')]})}},
+
+cancel:{perm:'cancel',level:'lic',label:'Cancel subscription',danger:1,hint:a=>a.role==='admin'?'':'Needs Store Admin approval',
+ elig(a,c,l){if(l.st==='Cancelling')return blk(`Cancellation is already scheduled for ${l.exp}.`,[['Undo cancellation','reactivate',l.id]]);if(l.st==='Cancelled')return blk('Already cancelled.',[['Reactivate','reactivate',l.id]],true);if(l.st==='Trial')return blk(`Trials end automatically on ${l.exp}.`,[],true);return null},
+ preview(a,c,l,p){const E=[],reason=p.reason||'Too expensive',comment=String(p.comment||'').trim(),when=p.when==='now'?'now':'end',ov=D.inv.find(i=>i.lic===l.id&&['Open','Overdue'].includes(i.st)),yr=bill(c,l.p,annual(l).total);if(!comment)E.push('Add a comment for the cancellation record.');
+  return{errors:E,notes:[...(ov?[`${ov.n} (${fmt(c.ccy,ov.amt)}) stays due after cancellation.`]:[]),...(when==='end'?[`Users keep access until ${l.exp}; this can be undone until then.`]:['Users lose access immediately.'])],changes:[['Status',l.st,when==='end'?'Cancels on '+l.exp:'Cancelled today']],norm:{reason,comment,when},
+   money:{ccy:c.ccy,dueNow:null,recurring:{before:yr,after:0,next:l.exp},effective:when==='end'?l.exp:today(),partner:econ(c,l.p,0,0)},policy:[['cancel',{}]],label:when==='end'?'Schedule cancellation':'Cancel now'}},
+ confirm:(c,l)=>({typed:l.id}),
+ apply(a,c,l,n,pv,m){if(n.when==='end'){l.st='Cancelling';l.cancelReason=n.reason}else{l.st='Cancelled';l.cancelledAt=today();l.cancelReason=n.reason}
+  ev(c,'Subscription',n.when==='end'?'Cancellation scheduled':'Subscription cancelled',`${svc(l)} · ${n.reason} · “${n.comment}”`,l.id,a,m);
+  return R({state:n.when==='end'?'scheduled':'completed',title:n.when==='end'?'Cancellation scheduled for '+l.exp:'Subscription cancelled',rows:[['License',l.id],['Access until',n.when==='end'?l.exp:'Ended today'],['Reason',n.reason]],stages:[S('Quote','done'),apSt(m),S(n.when==='end'?'Scheduled':'Cancelled','done'),...(n.when==='end'?[S('Ends '+l.exp,'todo')]:[])],notDone:n.when==='end'?`Still active until ${l.exp}; it can be undone until then.`:''})}},
+
+reactivate:{perm:'reactivate',level:'lic',label:'Undo cancellation / reactivate',
+ elig(a,c,l){if(l.st==='Cancelling')return null;if(l.st==='Cancelled'){const d=-daysTo(l.cancelledAt);return d<=POLICY.reactivationWindow?null:blk(`Cancelled ${d} days ago — outside the ${POLICY.reactivationWindow}-day reactivation window.`,[['Start a new purchase','buy',c.zoid]])}return blk('Only scheduled or recently cancelled subscriptions can be reactivated.',[],true)},
+ preview(a,c,l){const yr=bill(c,l.p,annual(l).total);if(l.st==='Cancelling')return{errors:[],notes:['No charge — the subscription simply continues and renews as normal.'],changes:[['Status','Cancels on '+l.exp,'Active · renews '+l.exp]],norm:{},money:{ccy:c.ccy,dueNow:null,recurring:{before:0,after:yr,next:l.exp},effective:today(),partner:econ(c,l.p,0,annual(l).total)},policy:[],label:'Undo cancellation'};
+  return{errors:[],notes:['Reactivation applies when the invoice is paid.'],changes:[['Status','Cancelled','Active · new term to '+addDays(365)]],norm:{},money:{ccy:c.ccy,dueNow:due(c,yr,'New 12-month term'),recurring:{before:0,after:yr,next:addDays(365)},effective:'On payment',partner:econ(c,l.p,annual(l).total,annual(l).total)},policy:[],label:'Create reactivation & send link'}},
+ apply(a,c,l,n,pv,m){if(l.st==='Cancelling'){l.st='Active';delete l.cancelReason;ev(c,'Subscription','Cancellation undone',`${svc(l)} · renews ${l.exp}`,l.id,a,m);return R({title:'Cancellation undone',rows:[['License',l.id],['Status','Active'],['Recurring',fmt(c.ccy,pv.money.recurring.after)+' / yr · renews '+l.exp]],stages:[S('Cancellation withdrawn','done'),S('Active','done')]})}
+  const inv=newInv(c,l,pv.money.dueNow.total,'reactivation',{newExp:addDays(365)});inv.linkSent=today();ev(c,'Order','Reactivation invoiced',`${svc(l)} · ${inv.n} · ${fmt(c.ccy,inv.amt)}`,l.id,a,m);
+  return R({state:'awaiting_payment',title:'Reactivation created — payment link sent',rows:[['Invoice',inv.n],['Amount',fmt(c.ccy,inv.amt)]],stages:[S('Quote','done'),S('Invoice + link sent','done'),S('Payment','wait'),S('Reactivated','todo')],notDone:'The subscription stays cancelled until the invoice is paid.',links:{copy:'Copy payment link'}})}},
+
+settle:{perm:'settle',level:'cust',label:'Collect payment',
+ elig:(a,c)=>openInv(c).length?null:blk('No open or overdue invoices.',[],true),
+ preview(a,c,_,p){const open=openInv(c),inv=open.find(i=>i.n===p.inv)||open[0],l=D.lic[inv.lic],method=['link','po','card'].includes(p.method)?p.method:'link',po=String(p.po||'').trim(),legal=!!p.legal,E=[],N=[];
+  const failed=D.pay.find(x=>x.inv===inv.n&&x.st==='Failed');if(failed)N.push(`${failed.id}: ${failed.why} on ${failed.d}.`);
+  if(method==='card'&&!(l&&isCard(l.pm)))E.push('No card on file for this subscription.');
+  if(method==='card'&&l&&/0007/.test(l.pm))N.push(`${l.pm} was declined before — a payment link is more likely to succeed.`);
+  if(method==='po'){if(!po)E.push('Enter the PO number.');if(!legal)E.push('Confirm Legal has approved the PO.');N.push('A PO is a commitment to pay, not a payment — the invoice stays receivable.');if(inv.st==='Overdue')N.push('Assumption: recording a PO lifts the overdue restriction on the license.')}
+  if(method==='link')N.push('The invoice stays unpaid until the customer pays'+(inv.st==='Overdue'?' — the license stays restricted until then.':'.'));
+  return{errors:E,notes:N,changes:[[inv.n+(l?' · '+svc(l):''),inv.st,method==='link'?'Payment link sent':method==='po'?'PO '+(po||'…')+' recorded (unpaid)':'Charge '+(l?l.pm:'card')]],norm:{inv:inv.n,method,po,legal},
+   money:{ccy:c.ccy,dueNow:{sub:inv.amt,tax:0,total:inv.amt,taxLabel:'included on invoice',basis:`${inv.n} · ${inv.st.toLowerCase()} · due ${inv.due}`},recurring:null,effective:today(),pay:method==='link'?'Payment link to '+c.rcp.invoice.map(r=>r.e).join(', '):method==='po'?'Purchase order':'Charge '+(l?l.pm:'card')},policy:[],
+   label:method==='link'?'Send payment link':method==='po'?'Record PO':'Charge card'}},
+ apply(a,c,_,n,pv,m){const inv=D.inv.find(i=>i.n===n.inv),l=D.lic[inv.lic];
+  if(n.method==='card'){const ok=charge(a,c,l,inv);return ok?R({title:inv.n+' paid',rows:[['Invoice',inv.n],['Paid by',l.pm]],stages:[S('Charged','done'),S('Paid','done')]}):R({state:'payment_failed',title:'Card declined',rows:[['Invoice',inv.n+' · still '+inv.st.toLowerCase()]],stages:[S('Charge attempted','done'),S('Card declined','fail')],notDone:'Nothing was collected. Send a payment link instead.',next:[['Send payment link','settle',c.zoid]]})}
+  if(n.method==='po'){const wasOv=inv.st==='Overdue';inv.st='PO received';inv.po=n.po;if(wasOv&&l&&l.st==='Overdue'&&!hasOverdue(l)){l.st='Active';l.v++}ev(c,'Payment','PO recorded',`${inv.n} · PO ${n.po} · invoice still receivable`,inv.lic,a,m);
+   return R({state:'awaiting_payment',title:`PO ${n.po} recorded on ${inv.n}`,rows:[['Invoice',`${inv.n} · PO received · unpaid`],['License',wasOv&&l?l.st+' (restriction lifted)':'—']],stages:[S('PO recorded','done'),...(wasOv?[S('Restriction lifted','done')]:[]),S('Payment','wait')],notDone:`${fmt(c.ccy,inv.amt)} is still receivable on ${inv.n}.`})}
+  inv.linkSent=today();D.pay.filter(x=>x.inv===inv.n&&x.st==='Failed').forEach(x=>x.st='Link sent');ev(c,'Payment','Payment link sent',`${inv.n} · ${fmt(c.ccy,inv.amt)} → ${c.rcp.invoice.map(r=>r.e).join(', ')}`,inv.lic,a,m);
+  return R({state:'awaiting_payment',title:'Payment link sent for '+inv.n,rows:[['Invoice',inv.n+' · '+fmt(c.ccy,inv.amt)],['Sent to',c.rcp.invoice.map(r=>r.e).join(', ')]],stages:[S('Link sent','done'),S('Payment','wait'),...(inv.st==='Overdue'?[S('Restriction lifted','todo')]:inv.kind==='renewal'?[S('Renewal applied','todo')]:[])],notDone:`${inv.n} is unpaid until the customer pays${inv.st==='Overdue'?'; the license stays restricted':''}.`,links:{copy:'Copy payment link'}})}},
+
+extend:{perm:'extend',level:'cust',label:'Extend payment date',
+ elig:(a,c)=>D.inv.some(i=>i.cust===c.zoid&&i.st==='Overdue')?null:blk('No overdue invoice.',[],true),
+ preview(a,c,_,p){const ov=D.inv.filter(i=>i.cust===c.zoid&&i.st==='Overdue'),inv=ov.find(i=>i.n===p.inv)||ov[0],comment=String(p.comment||'').trim(),nd=addDays(POLICY.extendDays);
+  return{errors:comment?[]:['Add a comment (it is recorded on the invoice).'],notes:['Assumption: the overdue restriction stays until the invoice is paid.'],changes:[[inv.n+' expected payment',inv.expPay||'—',nd]],norm:{inv:inv.n,comment},money:null,policy:[],label:'Extend to '+nd}},
+ apply(a,c,_,n){const inv=D.inv.find(i=>i.n===n.inv);inv.expPay=addDays(POLICY.extendDays);ev(c,'Payment','Payment date extended',`${inv.n} → ${inv.expPay} · “${n.comment}”`,inv.lic,a);return R({title:'Expected payment date: '+inv.expPay,rows:[['Invoice',inv.n],['Comment',n.comment]],stages:[S('Extended','done'),S('Payment','wait')],notDone:'The invoice is still overdue and the license stays restricted until it is paid.'})}},
+
+addr:{perm:'addr',level:'cust',label:'Billing address',
+ preview(a,c,_,p){const E=[],N=[],ch=[],n={billTo:c.partner?(p.billTo||c.billTo):'customer'};AF.forEach(k=>n[k]=String(p[k]??c.addr[k]).trim());
+  if(n.billTo!==c.billTo){if(!can(a,'billTo').ok)E.push(WHY.billTo);ch.push(['Invoices billed to',c.billTo,n.billTo])}
+  AF.forEach(k=>{if(n[k]!==c.addr[k])ch.push([AL[k],c.addr[k],n[k]]);if(!n[k])E.push(AL[k]+' is required.')});
+  const ver=n.country!==c.addr.country&&['India','Germany'].includes(n.country);if(ver)N.push('This country needs customer verification — an order-form link goes to the customer instead of updating directly.');
+  if(c.partner)N.push(`The partner address (${PARTNERS[c.partner].name}) is managed by the partner and is not edited here.`);
+  if(n.country!==c.addr.country||n.state!==c.addr.state){const t0=taxOf(c),t1=taxOf({addr:n});if(t0.label!==t1.label)N.push(`Tax on future invoices: ${t0.label} → ${t1.label}.`)}
+  return{errors:E,notes:N,changes:ch,norm:{...n,ver},money:null,policy:[],label:ver?'Send for customer verification':'Update billing address'}},
+ apply(a,c,_,n){if(n.ver){ev(c,'Change','Address change sent for verification',`${n.city}, ${n.country} · order-form link`,'—',a);return R({state:'awaiting_customer',title:'Sent to the customer for verification',rows:[['Proposed',`${n.street}, ${n.city}, ${n.country}`]],stages:[S('Order-form link sent','done'),S('Customer verification','wait'),S('Address updated','todo')],notDone:'The billing address is unchanged until the customer verifies.',links:{copy:'Copy order-form link'}})}
+  const was=`${c.addr.city}, ${c.addr.state}`;c.billTo=n.billTo;AF.forEach(k=>c.addr[k]=n[k]);ev(c,'Change','Billing address changed',`${was} → ${c.addr.street}, ${c.addr.city}, ${c.addr.state}`,'—',a);
+  return R({title:'Billing address updated',rows:[['Address',`${c.addr.street}, ${c.addr.city}, ${c.addr.state}, ${c.addr.country} ${c.addr.zip}`],['Invoices billed to',c.billTo]],stages:[S('Validated','done'),S('Updated','done')]})}},
+
+recipAdd:{perm:'recipAdd',level:'cust',label:'Add notification recipient',
+ preview(a,c,_,p){const type=p.type==='invoice'?'invoice':'purchase',name=String(p.name||'').trim(),email=String(p.email||'').trim().toLowerCase(),E=[];
+  if(name||email){if(!name)E.push('Name is required.');if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email))E.push('Enter a valid email.');else if(c.rcp[type].some(r=>r.e.toLowerCase()===email))E.push('Already on this list.')}
+  return{errors:E,notes:[],changes:name&&email?[[`${type[0].toUpperCase()+type.slice(1)} notifications`,'—',`${name} <${email}>`]]:[],norm:{type,name,email},money:null,policy:[],label:'Add recipient'}},
+ apply(a,c,_,n){c.rcp[n.type].push({n:n.name,e:n.email});ev(c,'Change','Notification recipient added',`${n.email} · ${n.type}`,'—',a);return R({title:'Recipient added',rows:[['List',n.type],['Recipient',`${n.name} <${n.email}>`]],stages:[S('Added','done')]})}},
+
+recipDel:{perm:'recipDel',level:'cust',label:'Remove notification recipient',danger:1,
+ preview(a,c,_,p){const[t,e]=String(p.who||'').split('|'),E=[];if(!t)return{errors:[],notes:[],changes:[],norm:{who:''},money:null,policy:[],label:'Remove recipient'};if(t==='invoice'&&c.rcp.invoice.length<=1)E.push('At least one invoice recipient is required — add another first.');
+  return{errors:E,notes:[],changes:[[`${t} notifications`,e,'Removed']],norm:{who:p.who},money:null,policy:[],label:'Remove recipient'}},
+ apply(a,c,_,n){const[t,e]=n.who.split('|');c.rcp[t]=c.rcp[t].filter(r=>r.e!==e);ev(c,'Change','Notification recipient removed',`${e} · ${t}`,'—',a);return R({title:'Recipient removed',rows:[['Removed',e],['List',t]],stages:[S('Removed','done')]})}}
+};
+const LIC_OPS=['change','renew','pause','convert','reactivate','discRemove','cancel'],CUST_OPS=['buy','settle','extend','addr','recipAdd','recipDel'],EST_OPS=['enableEst','reassignEst','deleteEst'];
+const snap=t=>stable(Object.fromEntries(Object.entries(t).filter(([k])=>!['hist','v'].includes(k))));
+const refOf=(op,t)=>OPS[op].level==='lic'?t.id:OPS[op].level==='est'?t.n:t.zoid;
+
+/* ---------- transaction pipeline ---------- */
+function gate(a,op,ref){const O=OPS[op];if(!O)throw new ApiError('INVALID','Unknown operation.');const{c,t}=resolve(a,O.level,ref);const pm=can(a,O.perm);if(!pm.ok)throw new ApiError('FORBIDDEN',pm.why);return{O,c,t}}
+function preview(a,op,ref,p){const{O,c,t}=gate(a,op,ref);const b=O.elig&&O.elig(a,c,t);if(b)return{block:b,version:t.v};const pv=O.preview(a,c,t,p||{});return{...pv,approval:policyCheck(a,pv.policy),confirm:O.confirm?O.confirm(c,t):null,version:t.v}}
+function quote(a,op,ref,p,baseVersion){const{O,c,t}=gate(a,op,ref);const b=O.elig&&O.elig(a,c,t);if(b)throw new ApiError('INELIGIBLE',b.reason,{fixes:b.fixes});
+ if(baseVersion!=null&&t.v!==baseVersion)throw new ApiError('CONFLICT',`This record changed since you opened it (version ${baseVersion} → ${t.v}).`,{now:t.v});
+ const pv=O.preview(a,c,t,p||{});if(pv.errors.length)throw new ApiError('INVALID',pv.errors.join(' '));if(!pv.changes.length)throw new ApiError('INVALID','Nothing to change.');
+ const q={id:'Q-'+(++D.seq.q),op,ref,ph:stable(pv.norm),v:t.v,created:Date.now(),expires:Date.now()+POLICY.quoteTTLms,money:pv.money,changes:pv.changes,notes:pv.notes,approval:policyCheck(a,pv.policy),label:pv.label,confirm:O.confirm?O.confirm(c,t):null,norm:pv.norm,source:'Mock pricing service v4 — not authoritative'};D.quotes[q.id]=q;return q}
+function execute(a,op,ref,p,o={}){
+ if(o.idem&&D.idem[o.idem])return{...D.idem[o.idem],duplicate:true};
+ const{O,c,t}=gate(a,op,ref);const b=O.elig&&O.elig(a,c,t);if(b)throw new ApiError('INELIGIBLE',b.reason,{fixes:b.fixes});
+ if(o.baseVersion!=null&&t.v!==o.baseVersion)throw new ApiError('CONFLICT',`This record changed since you opened it (version ${o.baseVersion} → ${t.v}). Reload to see the latest values.`,{now:t.v});
+ const pv=O.preview(a,c,t,p||{});if(pv.errors.length)throw new ApiError('INVALID',pv.errors.join(' '));if(!pv.changes.length)throw new ApiError('INVALID','Nothing to change.');
+ const q=D.quotes[o.quoteId];if(!q)throw new ApiError('QUOTE_MISSING','A valid quote is required before execution.');
+ if(Date.now()>q.expires)throw new ApiError('QUOTE_EXPIRED',`Quote ${q.id} expired — re-quote to get current pricing.`);
+ if(q.op!==op||q.ref!==ref||q.ph!==stable(pv.norm)||q.v!==t.v)throw new ApiError('QUOTE_MISMATCH','The request no longer matches its quote — review again.');
+ const ap=policyCheck(a,pv.policy);let res;
+ if(ap)res=createApproval(a,op,c,t,pv,q,ap);else{const b0=snap(t);res=O.apply(a,c,t,pv.norm,pv,null);if(snap(t)!==b0)t.v=(t.v||1)+1}
+ res.txn='TXN-'+(++D.seq.txn);res.idem=o.idem||null;res.quote=q.id;res.org=c.org;res.cust=c.zoid;res.ref=ref;res.op=op;
+ if(o.idem)D.idem[o.idem]=clone(res);return res}
+function createApproval(a,op,c,t,pv,q,ap){const x={id:'APR-'+(++D.seq.apr),op,label:OPS[op].label,ref:refOf(op,t),cust:c.zoid,org:c.org,params:pv.norm,snap:{due:pv.money?.dueNow?.total||0,rec:pv.money?.recurring?.after??null,ccy:c.ccy},quote:q.id,baseVersion:t.v,requester:{role:a.role,name:a.name},approver:ap.approver,rules:ap.rules,why:ap.why,summary:pv.changes.map(r=>`${r[0]}: ${strip(r[1])} → ${strip(r[2])}`).join(' · '),st:'Pending',created:today(),expires:addDays(POLICY.apprTTL)};
+ D.appr.unshift(x);ev(c,'Approval','Approval requested',`${x.id} · ${x.label} · ${x.summary} · awaiting ${x.approver}`,x.ref,a);
+ return R({state:'pending_approval',title:'Sent for approval — '+x.id,approval:clone(x),rows:[['Request',x.label],['Needs',x.approver],['Why',x.why],['Expires',x.expires+` (${POLICY.apprTTL} days)`]],stages:[S('Quote '+q.id,'done'),S('Approval — '+x.approver,'wait'),S('Re-validation','todo'),S('Execution','todo')],notDone:'Nothing has changed yet. On approval the request is re-validated against the latest subscription, price and permissions before it runs.'})}
+function sweep(){for(const x of D.appr)if(x.st==='Pending'&&x.expires<today()){x.st='Expired';ev(D.cust[x.cust],'Approval','Approval expired',`${x.id} · ${x.label} · not decided within ${POLICY.apprTTL} days`,x.ref,null)}}
+function decide(a,id,yes,note){const pc=can(a,'approve');if(!pc.ok)throw new ApiError('FORBIDDEN',pc.why);sweep();const x=D.appr.find(z=>z.id===id);if(!x)throw NF();const c=cust(a,x.cust);
+ if(x.st!=='Pending')throw new ApiError('INVALID',`${id} is ${x.st.toLowerCase()} — no further action is possible.`);
+ if(x.requester.name===a.name)throw new ApiError('SOD','Separation of duties: you cannot decide a request you raised.');
+ if(!yes){if(!String(note||'').trim())throw new ApiError('INVALID','A rejection reason is required.');x.st='Rejected';x.note=note;x.decidedBy=a.name;ev(c,'Approval','Approval rejected',`${id} · ${note}`,x.ref,a);
+  return{...R({state:'rejected',title:id+' rejected',rows:[['Request',x.label],['Reason',note]],stages:[S('Approval','fail'),S('Execution','skip')],notDone:'Nothing was changed. The requester sees your reason.'}),org:c.org,cust:c.zoid,op:x.op,ref:x.ref}}
+ const req={...ACTORS[x.requester.role],name:x.requester.name},O=OPS[x.op];
+ const stale=why=>{x.st='Stale';x.note=why;x.decidedBy=a.name;ev(c,'Approval','Approval could not run',`${id} · ${why}`,x.ref,a);return{...R({state:'stale',title:id+' needs re-submission',rows:[['Request',x.label],['Why',why]],stages:[S('Approved','done'),S('Re-validation','fail'),S('Execution','skip')],notDone:'Nothing was changed. The requester must re-submit against the current subscription.'}),org:c.org,cust:c.zoid,op:x.op,ref:x.ref}};
+ let r;try{r=resolve(req,O.level,x.ref)}catch(e){return stale('The record is no longer in the requester’s scope.')}
+ if(!can(req,O.perm).ok)return stale('The requester is no longer permitted to do this.');
+ if(r.t.v!==x.baseVersion)return stale(`The subscription changed after the request (version ${x.baseVersion} → ${r.t.v}).`);
+ const b=O.elig&&O.elig(req,r.c,r.t);if(b)return stale('No longer eligible: '+b.reason);
+ const pv=O.preview(req,r.c,r.t,x.params);if(pv.errors.length)return stale(pv.errors.join(' '));
+ const d2=pv.money?.dueNow?.total||0,rec2=pv.money?.recurring?.after??null;if(Math.abs(d2-x.snap.due)>0.01||(rec2!=null&&x.snap.rec!=null&&Math.abs(rec2-x.snap.rec)>0.01))return stale(`The price changed since the request (due now ${fmt(c.ccy,x.snap.due)} → ${fmt(c.ccy,d2)}).`);
+ x.st='Approved';x.decidedBy=a.name;x.decided=today();ev(c,'Approval','Approval granted',`${id} · ${x.label}`,x.ref,a);
+ const b0=snap(r.t),res=O.apply(req,r.c,r.t,pv.norm,pv,{approvedBy:a.name,approval:id});if(snap(r.t)!==b0)r.t.v=(r.t.v||1)+1;res.txn='TXN-'+(++D.seq.txn);x.txn=res.txn;Object.assign(res,{org:c.org,cust:c.zoid,op:x.op,ref:x.ref,approvalId:id});return res}
+
+/* ---------- read models ---------- */
+function licView(a,c,l){const an=annual(l);return{...l,name:svc(l),list:an.base,annual:bill(c,l.p,an.total),days:daysTo(l.exp),renewBlock:(OPS.renew.elig(a,c,l)||{}).reason||null,overdue:D.inv.find(i=>i.lic===l.id&&i.st==='Overdue')||null}}
+function health(c){const L=lics(c);if(L.some(l=>['Overdue','Cancelling','Paused'].includes(l.st))||D.pay.some(p=>p.cust===c.zoid&&p.st==='Failed'))return'At risk';if(L.some(l=>l.st==='Trial'||daysTo(l.exp)<=30||(l.act||0)>l.users||(ADDONS[l.p]||[]).some(x=>(l.adAct[x.k]||0)>(l.ad[x.k]||0))))return'Attention';return'Healthy'}
+const arrUSD=c=>lics(c).filter(l=>!['Cancelled','Trial'].includes(l.st)).reduce((t,l)=>t+bill(c,l.p,annual(l).total)*FX[c.ccy],0);
+function directory(a){return scoped(a).map(c=>({zoid:c.zoid,org:c.org,email:c.email,partner:c.partner,ccy:c.ccy,lics:lics(c).map(l=>({id:l.id,p:l.p,plan:l.plan,users:l.users,st:l.st,disc:l.disc||0,name:svc(l)})),ests:D.est.filter(e=>e.cust===c.zoid&&e.st!=='Deleted').map(e=>({n:e.n,p:e.p,st:e.st})),invs:D.inv.filter(i=>i.cust===c.zoid).map(i=>i.n),open:openInv(c).length,overdue:D.inv.filter(i=>i.cust===c.zoid&&i.st==='Overdue').length}))}
+function search(a,q){q=String(q||'').trim().toLowerCase();if(q.length<2)return[];const tok=q.split(/\s+/).filter(Boolean),out=[];
+ for(const c of scoped(a)){const org=c.org.toLowerCase();let s=0;
+  if([c.email,c.zoid.toLowerCase(),(c.crm||'').toLowerCase()].includes(q))s=100;else if(org.startsWith(q))s=86;else if(org.split(/[^a-z0-9]+/).some(w=>w&&w.startsWith(q)))s=78;else if(c.email.includes(q))s=70;else if(tok.length>1&&tok.every(t=>org.includes(t)))s=66;else if(c.partner&&PARTNERS[c.partner].name.toLowerCase().includes(q))s=40;
+  if(s)out.push({kind:'Customer',s:s+arrUSD(c)/1e7,zoid:c.zoid,title:c.org,sub:`${c.email} · ${c.zoid}${c.partner?' · '+PARTNERS[c.partner].name:' · direct'}`});
+  for(const l of lics(c)){const hay=`${org} ${svc(l).toLowerCase()} ${l.plan.toLowerCase()} ${l.id}`;let t=0;if(l.id===q)t=100;else if(q.length>=4&&/^\d/.test(q)&&l.id.startsWith(q))t=82;else if(tok.length>1&&tok.every(x=>hay.includes(x)))t=88;
+   if(t)out.push({kind:'License',s:t,zoid:c.zoid,ref:l.id,title:`${c.org} · ${svc(l)}`,sub:`${l.id} · ${l.plan} · ${l.users} users · ${l.st}`})}
+  for(const e of D.est.filter(e=>e.cust===c.zoid&&e.st!=='Deleted'))if(e.n.toLowerCase()===q||(q.startsWith('est')&&e.n.toLowerCase().startsWith(q)))out.push({kind:'Estimate',s:95,zoid:c.zoid,ref:e.n,title:`${e.n} · ${c.org}`,sub:`${CAT[e.p].name} ${e.plan} · ${e.st}`});
+  for(const i of D.inv.filter(i=>i.cust===c.zoid))if(i.n.toLowerCase()===q||(q.startsWith('inv')&&i.n.toLowerCase().startsWith(q)))out.push({kind:'Invoice',s:94,zoid:c.zoid,ref:i.n,title:`${i.n} · ${c.org}`,sub:`${fmt(i.ccy,i.amt)} · ${i.st}`})}
+ return out.sort((x,y)=>y.s-x.s).slice(0,8)}
+function cust360(a,z){const c=cust(a,z);return{c:{...c,hist:c.hist.slice(0,4),health:health(c),partnerInfo:c.partner?PARTNERS[c.partner]:null,arrUSD:arrUSD(c),tax:taxOf(c).label},lics:lics(c).map(l=>licView(a,c,l)),inv:D.inv.filter(i=>i.cust===z),est:D.est.filter(e=>e.cust===z&&e.st!=='Deleted'),pay:D.pay.filter(p=>p.cust===z),appr:D.appr.filter(x=>x.cust===z&&x.st==='Pending')}}
+function actionsFor(a,z,id,level){const c=cust(a,z);const lv=level||(id?'lic':'cust');let t=c;if(lv==='lic'){t=D.lic[id];if(!t||t.cust!==z)throw NF()}if(lv==='est'){t=D.est.find(e=>e.n===id);if(!t||t.cust!==z)throw NF()}
+ return(lv==='lic'?LIC_OPS:lv==='est'?EST_OPS:CUST_OPS).map(op=>{const O=OPS[op],p=can(a,O.perm);let why=p.ok?null:p.why,fixes=[],na=false;if(p.ok&&O.elig){const b=O.elig(a,c,t);if(b){why=b.reason;fixes=b.fixes;na=b.na}}return{op,label:O.label,ok:!why,why,fixes,na,danger:!!O.danger,hint:p.ok&&O.hint?O.hint(a):''}})}
+function context(a,op,ref){const{O,c,t}=gate(a,op,ref);const b=O.elig&&O.elig(a,c,t);return{op,ref,level:O.level,label:O.label,danger:!!O.danger,v:t.v,block:b||null,c:{zoid:c.zoid,org:c.org,email:c.email,partner:c.partner,partnerName:c.partner?PARTNERS[c.partner].name:null,billTo:c.billTo,ccy:c.ccy,addr:c.addr,rcp:c.rcp,tax:taxOf(c).label},
+ t:O.level==='lic'?licView(a,c,t):O.level==='est'?{...t,name:CAT[t.p].name}:null,lics:lics(c).map(l=>({id:l.id,name:svc(l),plan:l.plan,users:l.users,st:l.st})),pms:Object.fromEntries(lics(c).map(l=>[l.id,l.pm])),inv:D.inv.filter(i=>i.cust===c.zoid&&['Open','Overdue','PO received'].includes(i.st)),est:D.est.filter(e=>e.cust===c.zoid&&e.st!=='Deleted')}}
+function nextBest(a,z){const out=[],cs=z?[cust(a,z)]:scoped(a);
+ for(const c of cs){for(const l of lics(c)){const d=daysTo(l.exp),V={ccy:c.ccy,amt:bill(c,l.p,annual(l).total)};
+   if(l.st==='Overdue'){const i=D.inv.find(x=>x.lic===l.id&&x.st==='Overdue');out.push({s:d<=30?100:88,c,title:`${c.org}: ${svc(l)} renewal blocked`,detail:`${i.n} · ${fmt(c.ccy,i.amt)} overdue ${-daysTo(i.due)} days · renews in ${d} days`,op:'settle',ref:c.zoid,prefill:{inv:i.n},cta:'Resolve blocker',val:V,tag:'Blocker'})}
+   const fp=D.pay.find(p=>p.lic===l.id&&p.st==='Failed');if(fp)out.push({s:95,c,title:`${c.org}: card declined on ${svc(l)} renewal`,detail:`${fp.id} · ${fmt(c.ccy,fp.amt)} · renews in ${d} days`,op:'settle',ref:c.zoid,prefill:{inv:fp.inv,method:'link'},cta:'Send payment link',val:V,tag:'Payment'});
+   if(l.st==='Cancelling')out.push({s:92,c,title:`${c.org}: ${svc(l)} cancels in ${d} days`,detail:`${fmt(c.ccy,V.amt)} / yr at risk · reason: ${l.cancelReason||'—'}`,op:'reactivate',ref:l.id,cta:'Undo cancellation',val:V,tag:'Churn risk'});
+   if(l.st==='Trial'&&d<=14)out.push({s:85,c,title:`${c.org}: ${svc(l)} trial ends in ${d} days`,detail:`${l.users} users trialling ${l.plan}`,op:'convert',ref:l.id,cta:'Convert trial',val:{ccy:c.ccy,amt:bill(c,l.p,annual(l).total)},tag:'Conversion'});
+   if(l.st==='Paused'&&d<=45)out.push({s:72,c,title:`${c.org}: ${svc(l)} is paused`,detail:`Paused until ${l.pausedUntil} · renews in ${d} days${l.disc?' · '+l.disc+'% discount':''}`,op:'pause',ref:l.id,cta:'Resume',val:V,tag:'Renewal'});
+   if(l.st==='Active'&&!l.auto&&d<=30&&!OPS.renew.elig(a,c,l))out.push({s:70+(30-d)/3,c,title:`${c.org}: ${svc(l)} renews in ${d} days`,detail:`Manual renewal${c.billTo==='partner'?' · billed to partner':''}`,op:'renew',ref:l.id,cta:'Renew',val:V,tag:'Renewal'});
+   const gap=(l.act||0)-l.users,ag=(ADDONS[l.p]||[]).filter(x=>(l.adAct[x.k]||0)>(l.ad[x.k]||0));
+   if(l.st==='Active'&&(gap>0||ag.length)){const pre={};if(gap>0)pre.users=l.act;if(ag.length){pre.ad={};ag.forEach(x=>pre.ad[x.k]=l.adAct[x.k])}
+    out.push({s:60,c,title:`${c.org}: ${svc(l)} usage above licensed`,detail:[gap>0?`${l.act} active vs ${l.users} licensed users`:'',...ag.map(x=>`${x.n} ${l.adAct[x.k]} used vs ${l.ad[x.k]||0}`)].filter(Boolean).join(' · '),op:'change',ref:l.id,prefill:pre,cta:'Prepare expansion',val:V,tag:'Expansion'})}}
+  for(const e of D.est.filter(e=>e.cust===c.zoid&&e.st==='Approved by customer'))out.push({s:75,c,title:`${c.org}: ${e.n} approved by the customer`,detail:`${CAT[e.p].name} ${e.plan} · ${e.users} users`,op:'enableEst',ref:e.n,cta:'Enable license',val:{ccy:c.ccy,amt:e.amt},tag:'Close deal'})}
+ return out.sort((x,y)=>y.s-x.s).map(x=>{const p=can(a,OPS[x.op].perm);return{...x,c:undefined,cust:x.c.zoid,org:x.c.org,ok:p.ok,why:p.ok?null:p.why}})}
+function renewals(a,days){const out=[];for(const c of scoped(a))for(const l of lics(c)){if(['Cancelled','Cancelling','Trial'].includes(l.st))continue;const d=daysTo(l.exp);if(d>days)continue;const b=OPS.renew.elig(a,c,l);
+ out.push({cust:c.zoid,org:c.org,partner:c.partner?PARTNERS[c.partner].name:null,lic:l.id,name:svc(l),plan:l.plan,users:l.users,st:l.st,exp:l.exp,days:d,auto:l.auto,pm:l.pm,ccy:c.ccy,amt:bill(c,l.p,annual(l).total),billTo:c.billTo,margin:c.partner?annual(l).total*margin(c,l.p):0,block:b?b.reason:null,fixes:b?b.fixes:[]})}return out.sort((x,y)=>x.days-y.days)}
+function recovery(a){const S2=scoped(a).map(c=>c.zoid);return{failed:D.pay.filter(p=>S2.includes(p.cust)&&['Failed','Link sent'].includes(p.st)).map(p=>({...p,org:D.cust[p.cust].org,ccy:D.cust[p.cust].ccy})),overdue:D.inv.filter(i=>S2.includes(i.cust)&&i.st==='Overdue').map(i=>({...i,org:D.cust[i.cust].org,days:-daysTo(i.due)})),po:D.inv.filter(i=>S2.includes(i.cust)&&i.st==='PO received').map(i=>({...i,org:D.cust[i.cust].org})),links:D.inv.filter(i=>S2.includes(i.cust)&&i.linkSent&&['Open','Overdue'].includes(i.st)).map(i=>({...i,org:D.cust[i.cust].org}))}}
+function approvals(a){sweep();const L=a.role==='admin'?D.appr:D.appr.filter(x=>x.requester.name===a.name);return L.filter(x=>{try{cust(a,x.cust);return true}catch(e){return false}})}
+function portfolio(a){const groups={};for(const c of scoped(a)){const k=c.partner||'direct';(groups[k]=groups[k]||{code:k,name:c.partner?PARTNERS[c.partner].name:'Direct customers',agreement:c.partner?PARTNERS[c.partner].agreement:'',rows:[]}).rows.push({zoid:c.zoid,org:c.org,arrUSD:arrUSD(c),marginUSD:lics(c).filter(l=>!['Cancelled','Trial'].includes(l.st)).reduce((t,l)=>t+annual(l).total*margin(c,l.p)*FX[c.ccy],0),next:lics(c).filter(l=>!['Cancelled'].includes(l.st)).map(l=>daysTo(l.exp)).sort((x,y)=>x-y)[0],health:health(c),billTo:c.billTo})}
+ return Object.values(groups)}
+function home(a){sweep();const nba=nextBest(a),rn=renewals(a,30),rv=recovery(a);return{nba,ren:{n:rn.length,usd:rn.reduce((t,r)=>t+r.amt*FX[r.ccy],0),blocked:rn.filter(r=>r.block).length},appr:a.role==='admin'?D.appr.filter(x=>x.st==='Pending'&&x.requester.name!==a.name).length:D.appr.filter(x=>x.st==='Pending'&&x.requester.name===a.name).length,bill:rv.failed.filter(p=>p.st==='Failed').length+rv.overdue.length,arrUSD:scoped(a).reduce((t,c)=>t+arrUSD(c),0),customers:scoped(a).length,marginUSD:a.partners?portfolio(a).reduce((t,g)=>t+g.rows.reduce((s,r)=>s+r.marginUSD,0),0):0}}
+function history(a,z){const c=cust(a,z);return{org:c.org,zoid:c.zoid,email:c.email,partner:c.partner?PARTNERS[c.partner]:null,billTo:c.billTo,addr:c.addr,rcp:c.rcp,crm:c.crm,owner:c.owner,hist:c.hist,lics:lics(c).map(l=>licView(a,c,l)),inv:D.inv.filter(i=>i.cust===z),est:D.est.filter(e=>e.cust===z),pay:D.pay.filter(p=>p.cust===z),ord:D.ord.filter(o=>o.cust===z),appr:D.appr.filter(x=>x.cust===z)}}
+function audit(a){if(a.role!=='admin')throw new ApiError('FORBIDDEN','Audit stream is for Store Admins.');return D.audit.slice(0,12)}
+
+/* ---------- seed ---------- */
+function seed(){D={cust:{},lic:{},inv:[],est:[],pay:[],ord:[],appr:[],audit:[],quotes:{},idem:{},seq:{est:4410,inv:22010,ord:7100,apr:1001,txn:500100,lic:600,q:9000}};
+ const C=o=>({ccy:'USD',billTo:'customer',owner:'Jordan Hale',v:1,rcp:{purchase:[],invoice:[]},...o,hist:(o.hist||[]).map(h=>({d:h[0],cat:h[1],t:h[2],det:h[3],ref:h[4]||'—',by:h[5]||'System'}))});
+ const L=o=>({disc:0,ad:{},adAct:{},auto:false,pm:'Invoice (NET 30)',v:1,...o});
+ const add=(c,ls)=>{D.cust[c.zoid]=c;ls.forEach(l=>{l.cust=c.zoid;l.ccy=c.ccy;D.lic[l.id]=l})};
+ const I=o=>D.inv.push({ccy:D.cust[o.cust].ccy,kind:'standard',...o});
+ add(C({zoid:'ZO-60012',org:'Brightline Analytics',email:'billing@brightline.example',partner:'P-1042',crm:'CRM-ACC-10231',addr:{street:'48 Harbourline Way',city:'Toronto',state:'ON',country:'Canada',zip:'M5X 0Z1'},rcp:{purchase:[{n:'Tess Morrow',e:'tess@brightline.example'},{n:'Dev Okafor',e:'dev@brightline.example'}],invoice:[{n:'Brightline Finance',e:'finance@brightline.example'}]},
+  hist:[['2026-10-09','Estimate','Estimate sent','EST-4410 · Zoho Desk Professional · 10 users · $2,400.00','—','Jordan Hale · Sales / AM'],['2026-10-05','Estimate','Customer approved estimate','EST-4388 · Zoho Books Professional · 5 users'],['2026-09-02','Payment','Invoice overdue','INV-20931 · $1,480.00 · Zoho One','2500000/202'],['2026-02-14','Order','License renewed','Zoho CRM · 1 year · $21,600.00','2500000/201'],['2025-08-20','Subscription','Users increased','Zoho CRM · 35 → 45 users','2500000/201'],['2025-02-14','Subscription','License enabled','Zoho CRM Enterprise · 35 users','2500000/201']]}),
+  [L({id:'2500000/201',p:'crm',plan:'Enterprise',users:45,act:52,st:'Active',exp:'2027-02-14',pm:'Visa •• 4242',auto:true}),L({id:'2500000/202',p:'one',plan:'All Employee',users:50,st:'Overdue',exp:addDays(17)})]);
+ add(C({zoid:'ZO-61877',org:'Brightline Freight',email:'ops@brightlinefreight.example',partner:null,crm:'CRM-ACC-11807',addr:{street:'880 Seawall Drive',city:'Vancouver',state:'BC',country:'Canada',zip:'V6Z 0Z7'},rcp:{purchase:[{n:'Mara Quinn',e:'mara@brightlinefreight.example'}],invoice:[{n:'Brightline Freight AP',e:'ap@brightlinefreight.example'}]},hist:[['2026-06-30','Order','License renewed','Zoho Books Premium · 1 year','2500400/601']]}),
+  [L({id:'2500400/601',p:'books',plan:'Premium',users:20,st:'Active',exp:'2027-06-30'})]);
+ add(C({zoid:'ZO-70116',org:'Kestrel Timber Traders',email:'accounts@kestreltimber.example',partner:'P-1042',ccy:'INR',crm:'CUS-90021',addr:{street:'Plot 22, Lakeview Industrial Park',city:'Navgaon',state:'Karnataka',country:'India',zip:'560999'},rcp:{purchase:[{n:'Kestrel Timber (owner)',e:'accounts@kestreltimber.example'}],invoice:[{n:'Kestrel Timber (owner)',e:'accounts@kestreltimber.example'}]},
+  hist:[[today(),'Subscription','Add-on added','CRM – File Storage (GB) × 5 · ₹9,000.00 / yr','2700100/701'],[today(),'Order','Subscription created','Zoho One · All Employee Pricing · 3 employees · invoice unpaid · reseller price','2700100/701']]}),
+  [L({id:'2700100/701',p:'one',plan:'All Employee Pricing',users:3,act:4,st:'Active',exp:addDays(365),pm:'Invoice · Wallet (INR)',ad:{crmstor:5},adAct:{crmstor:6}})]);
+ add(C({zoid:'ZO-60177',org:'Corvina Retail Group',email:'ops@corvina.example',partner:'P-1042',crm:'CRM-ACC-10388',addr:{street:'4 Cedar Park Way',city:'Austin',state:'TX',country:'USA',zip:'78701'},rcp:{purchase:[{n:'Owen Vale',e:'owen@corvina.example'}],invoice:[{n:'Corvina AP',e:'ap@corvina.example'},{n:'Owen Vale',e:'owen@corvina.example'}]},
+  hist:[[addDays(-2),'Payment','Payment failed','Zoho Books auto-renew · $2,160.00 · Visa •• 0007 declined','2500100/302'],['2026-03-10','Change','Billing address changed','Austin, TX (street updated)'],['2025-12-20','Subscription','License enabled','Zoho Desk Professional · 8 users','2500100/301']]}),
+  [L({id:'2500100/301',p:'desk',plan:'Professional',users:8,st:'Active',exp:addDays(19),disc:8,discExp:addDays(200),pm:'Mastercard •• 1881',auto:true}),L({id:'2500100/302',p:'books',plan:'Standard',users:12,st:'Active',exp:addDays(12),pm:'Visa •• 0007',auto:true})]);
+ add(C({zoid:'ZO-60301',org:'Pinewood Labs',email:'it@pinewoodlabs.example',partner:'P-1042',crm:'CRM-ACC-10412',addr:{street:'9 Millbrook Way',city:'Mississauga',state:'ON',country:'Canada',zip:'L4W 0Z2'},rcp:{purchase:[{n:'Ruth Calder',e:'ruth@pinewoodlabs.example'}],invoice:[{n:'Pinewood AP',e:'ap@pinewoodlabs.example'}]},
+  hist:[[addDays(-5),'Subscription','Subscription paused','Zoho Projects · Budget review','2500200/401'],['2026-03-01','Change','Discount applied','Zoho Projects · 20% recurring','2500200/401']]}),
+  [L({id:'2500200/401',p:'projects',plan:'Premium',users:30,st:'Paused',pausedUntil:addDays(2),exp:addDays(27),disc:20,discExp:'2027-03-01'})]);
+ add(C({zoid:'ZO-60444',org:'Halden Manufacturing',email:'admin@halden.example',partner:null,crm:'CRM-ACC-10590',addr:{street:'12 Oakridge Blvd',city:'Raleigh',state:'NC',country:'USA',zip:'27601'},rcp:{purchase:[{n:'Ivan Brook',e:'ivan@halden.example'}],invoice:[{n:'Halden AP',e:'ap@halden.example'}]},
+  hist:[[addDays(-24),'Subscription','Trial started','Zoho Desk Professional · 25 users · 30 days','2500300/502'],['2026-05-01','Order','License renewed','Zoho CRM · 1 year','2500300/501']]}),
+  [L({id:'2500300/501',p:'crm',plan:'Professional',users:15,st:'Active',exp:'2027-05-01'}),L({id:'2500300/502',p:'desk',plan:'Professional',users:25,st:'Trial',exp:addDays(6)})]);
+ add(C({zoid:'ZO-62210',org:'Ironvale Fabrication',email:'accounts@ironvale.example',partner:'P-2088',billTo:'partner',crm:'CRM-ACC-12950',addr:{street:'77 Anvil Lane',city:'Hamilton',state:'ON',country:'Canada',zip:'L8L 0Z1'},rcp:{purchase:[{n:'Lena Hart',e:'lena@ironvale.example'}],invoice:[{n:'Maple Cloud AR',e:'ar@maplecloud.example'}]},hist:[[addDays(-356),'Order','License enabled','Zoho CRM Standard · 25 users · billed to partner','2500500/701']]}),
+  [L({id:'2500500/701',p:'crm',plan:'Standard',users:25,st:'Active',exp:addDays(9)})]);
+ add(C({zoid:'ZO-60990',org:'Marlow Outfitters',email:'it@marlowoutfitters.example',partner:null,crm:'CRM-ACC-10777',addr:{street:'210 Riverside Lane',city:'New York',state:'NY',country:'USA',zip:'10001'},rcp:{purchase:[{n:'Cole Marsh',e:'cole@marlowoutfitters.example'}],invoice:[{n:'Marlow AP',e:'ap@marlowoutfitters.example'}]},hist:[[addDays(-6),'Subscription','Cancellation scheduled','Zoho One · Moved to competitor · “Consolidating vendors”','2500600/801']]}),
+  [L({id:'2500600/801',p:'one',plan:'Flexible',users:120,st:'Cancelling',cancelReason:'Moved to competitor',exp:addDays(40),disc:10,discExp:addDays(40)})]);
+ I({n:'INV-20931',cust:'ZO-60012',lic:'2500000/202',amt:1480,due:'2026-09-02',st:'Overdue'});I({n:'INV-20188',cust:'ZO-60012',lic:'2500000/201',amt:21600,due:'2026-02-14',st:'Paid'});
+ I({n:'INV-22001',cust:'ZO-70116',lic:'2700100/701',amt:43542,due:addDays(14),st:'Open'});
+ I({n:'INV-21102',cust:'ZO-60177',lic:'2500100/302',amt:2160,due:addDays(14),st:'Open',kind:'renewal',newExp:addYears(addDays(12),1)});
+ D.pay.push({id:'PAY-9921',cust:'ZO-60177',lic:'2500100/302',inv:'INV-21102',amt:2160,d:addDays(-2),why:'Card declined (insufficient funds)',st:'Failed'});
+ D.est.push({n:'EST-4410',cust:'ZO-60012',p:'desk',plan:'Professional',users:10,amt:2400,ccy:'USD',st:'Sent',d:'2026-10-09',v:1},{n:'EST-4388',cust:'ZO-60012',p:'books',plan:'Professional',users:5,amt:2400,ccy:'USD',st:'Approved by customer',d:'2026-10-02',v:1},{n:'EST-4402',cust:'ZO-60012',p:'projects',plan:'Premium',users:12,amt:1296,ccy:'USD',st:'Draft',d:'2026-10-12',v:1});
+ // seeded approvals are persisted intents (data), not closures
+ const mk=(id,actorKey,op,ref,params,created)=>{const a=ACTORS[actorKey],O=OPS[op],{c,t}=resolve(a,O.level,ref),pv=O.preview(a,c,t,params),ap=policyCheck(a,pv.policy);
+  const x={id,op,label:O.label,ref,cust:c.zoid,org:c.org,params:pv.norm,snap:{due:pv.money?.dueNow?.total||0,rec:pv.money?.recurring?.after??null,ccy:c.ccy},quote:'Q-seed',baseVersion:t.v,requester:{role:a.role,name:a.name},approver:ap.approver,rules:ap.rules,why:ap.why,summary:pv.changes.map(r=>`${r[0]}: ${strip(r[1])} → ${strip(r[2])}`).join(' · '),st:'Pending',created:addDays(created),expires:addDays(created+POLICY.apprTTL)};
+  D.appr.unshift(x);c.hist.unshift({d:x.created,cat:'Approval',t:'Approval requested',det:`${x.id} · ${x.label} · ${x.summary} · awaiting ${x.approver}`,ref,by:`${a.name} · ${ROLE_LABEL[a.role]}`})};
+ mk('APR-0999','sales','change','2500500/701',{disc:18,discExp:addDays(365),note:'Competitive pressure from incumbent'},-9);
+ mk('APR-1000','pam','cancel','2500200/401',{reason:'Too expensive',comment:'Budget freeze for FY27',when:'end'},-2);
+ mk('APR-1001','sales','change','2500100/301',{disc:25,discExp:addDays(365),note:'Two-year commitment discussion with Owen'},-1);
+ sweep()}
+seed();
+
+const api={meta:()=>clone({CAT,INR_PLANS,ADDONS,PARTNERS,POLICY,ASSUMPTIONS,ROLE_LABEL,ACTORS,TAX,today:today(),LIC_OPS,CUST_OPS,EST_OPS,OPS:Object.fromEntries(Object.entries(OPS).map(([k,o])=>[k,{label:o.label,level:o.level,perm:o.perm,danger:!!o.danger}]))}),
+ directory,search,cust360,actionsFor,context,nextBest,renewals,recovery,approvals,portfolio,home,history,audit,preview,quote,execute,decide,
+ can:(a,perm)=>can(a,perm),
+ demo:{ // simulations of events that happen outside this session — clearly labelled in the UI
+  reset:()=>{seed();return true},
+  custApprove(n){const e=D.est.find(x=>x.n===n&&x.st==='Sent');if(!e)return null;e.st='Approved by customer';e.v++;ev(D.cust[e.cust],'Estimate','Customer approved estimate',`${e.n} (simulated)`,'—',null);return e.n},
+  pay(n){const i=D.inv.find(x=>x.n===n&&['Open','Overdue','PO received'].includes(x.st));if(!i)return null;markPaid(null,D.cust[i.cust],i,'customer payment (simulated)');return i.n},
+  concurrent(id){const l=D.lic[id];if(!l)return null;l.users+=1;l.v++;ev(D.cust[l.cust],'Subscription','Changed outside this session',`${svc(l)} · users +1 by another user (simulated concurrency)`,l.id,null);return l.id},
+  lists:()=>clone({est:D.est.filter(e=>e.st==='Sent').map(e=>({n:e.n,org:D.cust[e.cust].org})),inv:D.inv.filter(i=>['Open','Overdue','PO received'].includes(i.st)).map(i=>({n:i.n,org:D.cust[i.cust].org,amt:i.amt,ccy:i.ccy,st:i.st})),lic:Object.values(D.lic).filter(l=>!['Cancelled'].includes(l.st)).map(l=>({id:l.id,org:D.cust[l.cust].org,name:svc(l)}))})}};
+// every public call returns a copy so callers cannot mutate backend state
+for(const k of Object.keys(api))if(typeof api[k]==='function'&&k!=='meta')api[k]=(f=>(...x)=>clone(f(...x)))(api[k]);
+return{api,ApiError}})();
+
+'use strict';
+/* =====================================================================
+   LAYER 1 — AGENT: intent understanding + orchestration
+   Rule-based stand-in for an LLM. In production an LLM produces the SAME
+   structured intent (JSON below) via tool calling; resolution against
+   customer data goes through the scoped directory/search APIs, and the
+   agent never prices, authorizes or executes anything itself.
+   ===================================================================== */
+const Agent=(()=>{
+ let META=null;
+ const NUMW={one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10};
+ const U='(?:users?|seats?|licen[cs]es?|employees?)';
+ const PROD=[['one',/\bzoho one\b|\bz1\b/i],['crm',/\bcrm\b/i],['desk',/\bdesk\b/i],['books',/\bbooks\b/i],['projects',/\bprojects?\b/i]];
+ const PNAME={crm:'Zoho CRM',desk:'Zoho Desk',books:'Zoho Books',projects:'Zoho Projects',one:'Zoho One'};
+ const PLANS=[['all employee','All Employee'],['flexible','Flexible'],['enterprise','Enterprise'],['ultimate','Ultimate'],['professional','Professional'],['standard','Standard'],['premium','Premium']];
+ // ordered: first match wins
+ const INT=[
+  ['approvals',/\bapprov(?:al|als|e)\b|pending requests?/i],
+  ['diagnose',/\bwhy\b|\bblock(?:er|ers|ed|ing)?\b|what'?s (?:stopping|blocking)|can'?t (?:renew|upgrade|change)/i],
+  ['recipDel',/\b(?:remove|delete)\b.*\b(?:recipient|notification)/i],
+  ['recipAdd',/\b(?:recipient|notifications?|cc)\b/i],
+  ['deleteEst',/\b(?:delete|remove|discard|withdraw)\b.*\b(?:estimate|quote)\b|\b(?:delete|remove)\b.*\bEST-\d+/i],
+  ['discRemove',/\b(?:remove|delete|revoke|drop|end)\b.*\bdiscount/i],
+  ['reassignEst',/\breassign\b|\bmove\b.*\bestimate/i],
+  ['enableEst',/\benable\b.*(?:\bestimate\b|EST-\d+)|\bconvert\b.*EST-\d+/i],
+  ['reactivate',/reactivat|\bundo\b.*\bcancel|\bcancel.*\bundo\b|win.?back|\bsave\b.*\b(?:account|deal|customer|them)\b|don'?t cancel|stop (?:the )?cancel/i],
+  ['cancel',/\bcancel/i],
+  ['convert',/\btrial\b|\bconvert\b/i],
+  ['renewals',/\brenewals\b|\bexpiring\b|\brenew\b.*\b(?:this (?:month|week|quarter)|next \d+ days|subscriptions)\b/i],
+  ['renew',/\brenew/i],
+  ['recovery',/failed (?:card )?payments?|payments? failed|declined|overdue|billing issues?|unpaid/i],
+  ['extend',/\bextend\b.*\b(?:payment|due|date)|more time to pay/i],
+  ['settle',/payment link|\bsettle\b|\bcollect\b|\bpurchase order\b|\bPO\b|\bpay\b/i],
+  ['quote',/\bprice\b|\bpricing\b|\bcost\b|how much|\bquote\b/i],
+  ['change',new RegExp(`\\b(?:add|increase|reduce|decrease|remove)\\b.*\\b${U}|\\bupgrade|\\bdowngrade|\\bmodify|change (?:the )?plan|\\bstorage\\b|add-?ons?|\\bmore ${U}|\\d+\\s+(?:more\\s+)?(?:\\w+\\s+)?${U}`,'i')],
+  ['discount',/\bdiscount|% off/i],
+  ['buy',/\bestimate\b|\bclose\b.*\bdeal\b|\bnew (?:product|licen[cs]e|subscription|purchase)\b|\b(?:buy|purchase|sell)\b/i],
+  ['pause',/\bpause|\bresume/i],
+  ['addr',/billing (?:address|info|information|details|entity)|\baddress\b|bill to/i],
+  ['history',/\bhistory\b|timeline|\bhappened\b|\baudit\b|activity/i],
+  ['portfolio',/portfolio|my (?:customers|partners|accounts)|all customers/i],
+  ['home',/\btoday\b|attention|dashboard|\bhome\b|priorit|what should i/i],
+  ['c360',/\b(?:show|open|find|look ?up|search|details|360|account|tell me about)\b/i]];
+ const LV={change:'lic',renew:'lic',pause:'lic',cancel:'lic',reactivate:'lic',convert:'lic',discRemove:'lic',buy:'cust',settle:'cust',extend:'cust',addr:'cust',recipAdd:'cust',recipDel:'cust',deleteEst:'est',reassignEst:'est',enableEst:'est'};
+ const STOP=new Set(['corp','ltd','inc','the','house','and','ply','solutions','llc','group','co']);
+ const CMD=new Set('show open find look search tell what why how who which when where can could would should please hi hello hey the and for with from our this that these those add remove delete cancel cancelling renew renewals upgrade downgrade change update modify prepare create make send get buy purchase sell quote price pricing cost estimate estimates recover collect settle pay payment payments link pause resume convert enable extend reassign undo reactivate discount discounts approve approvals approval history billing address recipient recipients notification notifications today attention dashboard home portfolio customers customer account accounts license licenses licence licences subscription subscriptions users seats employees employee trial zoho crm desk books projects one enterprise ultimate professional standard premium flexible all invoice invoices next days month week year years yes failed overdue blocked blocker card declined new needs need wants want give has have identify resolve prepare complete close deal'.split(' '));
+ const needsCust=i=>!['home','renewals','approvals','portfolio','recovery','diagnose'].includes(i);
+ const wfOf=i=>({quote:'change',discount:'change',recovery:'settle'}[i]||i);
+
+ function entities(t,dir){const e={},low=t.toLowerCase();let m;
+  if(m=t.match(/[\w.+-]+@[\w-]+(?:\.[\w-]+)+/))e.email=m[0].toLowerCase();
+  if(m=t.match(/\b\d{7}\/\d{3}\b/))e.lic=m[0];
+  if(m=t.match(/\bEST-\d+\b/i))e.est=m[0].toUpperCase();
+  if(m=t.match(/\bINV-\d+\b/i))e.inv=m[0].toUpperCase();
+  if(m=t.match(/\b(?:ZO-\d+|RPWIN\d+)\b/i))e.zoid=m[0].toUpperCase();
+  for(const[k,re]of PROD)if(re.test(t)){e.product=k;break}
+  for(const[k,v]of PLANS)if(new RegExp('\\b'+k+'\\b','i').test(t)){e.plan=v;break}
+  const W='(?:\\w+\\s+){0,2}';
+  if(m=t.match(new RegExp(`\\b(?:add|plus)\\s+(\\d+)\\s+(?:more\\s+|new\\s+|extra\\s+)?${W}${U}`,'i')))e.users={op:'add',n:+m[1]};
+  else if(m=t.match(new RegExp(`\\b(\\d+)\\s+(?:more|extra|additional)\\s+${W}${U}`,'i')))e.users={op:'add',n:+m[1]};
+  else if(m=t.match(new RegExp(`\\b(?:remove|reduce by|drop)\\s+(\\d+)\\s+${W}${U}`,'i')))e.users={op:'sub',n:+m[1]};
+  else if(m=t.match(new RegExp(`\\bto\\s+(\\d+)\\s+${W}${U}`,'i')))e.users={op:'set',n:+m[1]};
+  else if(m=t.match(new RegExp(`\\b(\\d+)\\s+${W}${U}`,'i')))e.users={op:'set',n:+m[1]};
+  if(/discount|% off|percent off/i.test(t)&&(m=t.match(/(\d{1,2})\s*(?:%|percent)/i)))e.disc=+m[1];
+  if(m=t.match(/\b([1-3])[\s-]*years?\b/i))e.term=+m[1];
+  m=t.match(/next\s+(\d+)\s+days/i);e.days=m?+m[1]:/this week/i.test(t)?7:/quarter|90 days/i.test(t)?90:/60 days/i.test(t)?60:/this month|30 days/i.test(t)?30:null;
+  const ex=dir.find(c=>(e.email&&c.email===e.email)||(e.zoid&&c.zoid.toUpperCase()===e.zoid)||(e.lic&&c.lics.some(l=>l.id===e.lic))||(e.est&&c.ests.some(x=>x.n===e.est))||(e.inv&&c.invs.includes(e.inv)));
+  if(ex){e.exact=ex;e.exactWhy=e.email?'email':e.zoid?'org ID':e.lic?'license ID':e.est?'estimate number':'invoice number'}
+  else if(e.email||e.zoid||e.lic||e.est||e.inv)e.idMiss=e.email||e.zoid||e.lic||e.est||e.inv;
+  const words=new Set(low.match(/[a-z0-9]+/g)||[]);let best=0,cs=[];
+  for(const c of dir){const tk=c.org.toLowerCase().split(/[^a-z0-9]+/).filter(w=>w.length>=3&&!STOP.has(w));const s=tk.filter(w=>words.has(w)).length;if(s>best){best=s;cs=[c]}else if(s&&s===best)cs.push(c)}
+  e.cands=cs;
+  // unknown proper nouns → never silently fall back to the customer in context
+  if(!cs.length&&!ex){const known=new Set(dir.flatMap(c=>c.org.toLowerCase().split(/[^a-z0-9]+/)));const caps=(t.match(/\b[A-Z][A-Za-z&.-]{2,}(?:['’]s)?\b/g)||[]).map(w=>w.replace(/['’]s$/,'')).filter(w=>!CMD.has(w.toLowerCase())&&!known.has(w.toLowerCase())&&!/^(EST|INV|PO|ZO)/.test(w));if(caps.length)e.unknownName=caps.join(' ')}
+  return e}
+
+ function parse(text,dir,ctxZ){
+  const t=text.replace(new RegExp(`(?<!zoho\\s)\\b(one|two|three|four|five|six|seven|eight|nine|ten)\\b(?=\\s+(?:more\\s+|extra\\s+|additional\\s+|new\\s+)?(?:[a-z]+\\s+)?${U})`,'gi'),w=>NUMW[w.toLowerCase()]);
+  const e=entities(t,dir);let intent=null;for(const[k,re]of INT)if(re.test(t)){intent=k;break}
+  if(!intent&&e.users)intent='change';if(!intent&&e.disc!=null)intent='discount';if(!intent&&(e.cands.length||e.exact||e.idMiss))intent='c360';
+  if(!intent)return{kind:'unknown',text,e};
+  return resolve({intent,e,text:t},dir,ctxZ)}
+
+ function pickLic(wf,e,c,pick){const L=c.lics;
+  if(pick)return{lic:L.find(l=>l.id===pick)};
+  if(e.lic){const l=L.find(x=>x.id===e.lic);if(l)return{lic:l}}
+  let cand=e.product?L.filter(l=>l.p===e.product):L.slice();
+  const pref={convert:l=>l.st==='Trial',reactivate:l=>['Cancelling','Cancelled'].includes(l.st),pause:l=>['Paused','Active'].includes(l.st),renew:l=>!['Trial','Cancelled','Cancelling'].includes(l.st),change:l=>!['Cancelled','Trial'].includes(l.st),cancel:l=>!['Cancelled','Cancelling'].includes(l.st),discRemove:l=>l.disc>0}[wf];
+  if(cand.length>1&&pref){const f=cand.filter(pref);if(f.length)cand=f}
+  if(!e.product&&cand.length>1&&pref){const f=cand.filter(pref);if(f.length===1)cand=f}
+  if(cand.length===1)return{lic:cand[0]};
+  const pool=cand.length?cand:L;
+  return{clarify:true,q:cand.length?`Which ${c.org} subscription?`:`${c.org} has no ${PNAME[e.product]} — which subscription did you mean?`,options:pool.map(l=>({v:l.id,label:`${l.name} · ${l.plan}`,sub:`${l.id} · ${l.users} users · ${l.st}`}))}}
+ function pickEst(wf,e,c,pick){let E=c.ests.filter(x=>!['Converted','Deleted'].includes(x.st));
+  if(pick)return{est:E.find(x=>x.n===pick)};if(e.est){const x=E.find(z=>z.n===e.est);if(x)return{est:x}}
+  if(e.product)E=E.filter(x=>x.p===e.product);if(wf==='enableEst'&&E.length>1){const f=E.filter(x=>x.st==='Approved by customer');if(f.length)E=f}
+  if(E.length===1)return{est:E[0]};if(!E.length)return{none:true};
+  return{clarify:true,q:`Which ${c.org} estimate?`,options:E.map(x=>({v:x.n,label:x.n+' · '+PNAME[x.p],sub:x.st}))}}
+ function prefill(wf,e,lic,intent,text){const p={};
+  if(wf==='change'&&lic){if(e.users)p.users=e.users.op==='add'?lic.users+e.users.n:e.users.op==='sub'?Math.max(1,lic.users-e.users.n):e.users.n;
+   const plans=lic.ccy==='INR'||lic.plan.includes('Pricing')?[]:Object.keys(META.CAT[lic.p].plans);if(e.plan&&plans.includes(e.plan)&&e.plan!==lic.plan)p.plan=e.plan;
+   if(e.disc!=null){p.disc=e.disc;p.discExp=new Date(Date.parse(META.today+'T00:00:00Z')+365*864e5).toISOString().slice(0,10)}}
+  if(wf==='buy'){if(e.product)p.p=e.product;if(e.users)p.users=e.users.n;if(e.plan)p.plan=e.plan}
+  if(wf==='convert'&&e.users)p.users=e.users.op==='add'&&lic?lic.users+e.users.n:e.users.n;
+  if(wf==='renew'&&e.term)p.term=e.term;
+  if(wf==='settle'){if(intent==='recovery')p.method='link';if(/\bPO\b|purchase order/i.test(text))p.method='po';if(e.inv)p.inv=e.inv}
+  if(wf==='extend'&&e.inv)p.inv=e.inv;
+  return p}
+
+ function resolve(P,dir,ctxZ){const{intent,e}=P;const out={...P,kind:'workflow',mode:'open',prefill:{},why:''};
+  const VIEW={home:'home',renewals:'renewals',approvals:'approvals',portfolio:'portfolio'};
+  if(VIEW[intent])return{...out,kind:'view',wf:VIEW[intent],args:{days:e.days||30}};
+  let c=null;
+  if(P.pickCust){c=dir.find(x=>x.zoid===P.pickCust);out.why='you selected it'}
+  else if(e.exact){c=e.exact;out.why='matched by '+e.exactWhy}
+  else if(e.idMiss)return{...out,kind:'notFound',what:e.idMiss}
+  else if(e.cands.length===1){c=e.cands[0];out.why='name match'}
+  else if(e.cands.length>1){const f=e.cands;
+   if(e.product){const own=f.filter(x=>x.lics.some(l=>l.p===e.product&&l.st!=='Cancelled')),g=intent==='buy'?f.filter(x=>!own.includes(x)):own;if(g.length===1){c=g[0];out.why=intent==='buy'?`the only match without ${PNAME[e.product]}`:`the only match with ${PNAME[e.product]}`}}
+   if(!c){const need={extend:x=>x.overdue>0,settle:x=>x.open>0,recovery:x=>x.open>0,enableEst:x=>x.ests.some(z=>z.st==='Approved by customer'),deleteEst:x=>x.ests.length>0,reassignEst:x=>x.ests.length>0}[intent];if(need){const g=f.filter(need);if(g.length===1){c=g[0];out.why=`the only match with ${intent==='extend'?'an overdue invoice':intent==='settle'||intent==='recovery'?'an open invoice':'estimates'}`}}}
+   if(!c)return{...out,kind:'clarify',ask:'customer',q:'More than one account matches — which one?',options:f.map(x=>({v:x.zoid,label:x.org,sub:x.email}))}}
+  else if(e.unknownName&&needsCust(intent))return{...out,kind:'notFound',what:e.unknownName}
+  else if(ctxZ&&needsCust(intent)||ctxZ&&['diagnose'].includes(intent)){c=dir.find(x=>x.zoid===ctxZ);if(c){out.why='the customer in context';out.usedCtx=true}}
+  if(!c){if(intent==='recovery'||intent==='diagnose')return{...out,kind:'view',wf:'recovery',args:{}};
+   return{...out,kind:'clarify',ask:'customer',q:'Which customer?',options:dir.slice(0,6).map(x=>({v:x.zoid,label:x.org,sub:x.email})),hint:'…or type a name, email or license ID.'}}
+  out.cust=c;
+  if(intent==='c360')return{...out,kind:'view',wf:'c360',args:{z:c.zoid}};
+  if(intent==='history')return{...out,kind:'view',wf:'history',args:{z:c.zoid}};
+  if(intent==='diagnose'){const lic=e.lic?c.lics.find(l=>l.id===e.lic):e.product?c.lics.find(l=>l.p===e.product):null;return{...out,kind:'view',wf:'diagnose',args:{z:c.zoid,lic:lic?lic.id:null}}}
+  let wf=wfOf(intent);
+  if(intent==='quote')out.mode='quote';
+  if((intent==='quote'||intent==='discount')&&e.product&&!c.lics.some(l=>l.p===e.product&&l.st!=='Cancelled'))wf='buy';
+  if(intent==='convert'&&e.est)wf='enableEst';
+  if(intent==='buy'&&e.product&&c.lics.some(l=>l.p===e.product&&l.st==='Trial'))wf='convert';
+  out.wf=wf;const lvl=LV[wf];
+  if(lvl==='lic'){const r=pickLic(wf,e,c,P.pickLic);if(r.clarify)return{...out,kind:'clarify',ask:'license',q:r.q,options:r.options};out.lic=r.lic;out.ref=r.lic.id}
+  else if(lvl==='est'){const r=pickEst(wf,e,c,P.pickEst);if(r.none)return{...out,kind:'say',msg:`${c.org} has no open estimates${e.product?' for '+PNAME[e.product]:''}.`};if(r.clarify)return{...out,kind:'clarify',ask:'est',q:r.q,options:r.options};out.est=r.est;out.ref=r.est.n}
+  else out.ref=c.zoid;
+  out.prefill=prefill(wf,e,out.lic,intent,P.text);
+  out.confidence=out.usedCtx||P.pickCust||P.pickLic||P.pickEst?'medium':'high';
+  return out}
+ function choose(plan,ask,v,dir,ctxZ){const k={customer:'pickCust',license:'pickLic',est:'pickEst'}[ask];return resolve({intent:plan.intent,e:plan.e,text:plan.text,pickCust:plan.pickCust,pickLic:plan.pickLic,pickEst:plan.pickEst,[k]:v,...(ask==='customer'?{pickLic:null,pickEst:null}:{})},dir,ctxZ)}
+ // what the agent emits (production: LLM tool-call JSON) — shown in the trace
+ function intentJSON(r){const e=r.e||{};return{intent:r.intent||null,result:r.kind,workflow:r.wf||null,customer:r.cust?r.cust.org:null,resolved_by:r.why||null,target:r.ref||null,prefill:r.prefill||{},mode:r.mode||null,confidence:r.confidence||null,
+  entities:Object.fromEntries(Object.entries({product:e.product,plan:e.plan,users:e.users,discount:e.disc,term:e.term,days:e.days,email:e.email,license:e.lic,estimate:e.est,invoice:e.inv,unknown_name:e.unknownName}).filter(([,v])=>v!=null))}}
+ return{init:m=>{META=m},parse,choose,intentJSON,PNAME}})();
+
+'use strict';
+/* =====================================================================
+   LAYER 2 — UI: chat for intent, structured workspace for review/edit/
+   execution. Renders only what Store.api returns; never computes prices,
+   permissions or eligibility itself.
+   ===================================================================== */
+const M=Store.api.meta();Agent.init(M);
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money=(ccy,n)=>(ccy==='INR'?'₹':'$')+Number(n||0).toLocaleString(ccy==='INR'?'en-IN':'en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const usd=n=>'$'+Math.round(n||0).toLocaleString('en-US');
+const BIZ=Date.parse(M.today+'T00:00:00Z'),uDay=n=>new Date(BIZ+n*864e5).toISOString().slice(0,10);
+const FN=new Map();let fseq=0;const fn=f=>{const i=++fseq;FN.set(i,f);return i};
+const btn=(label,f,cls='',attr='')=>`<button type="button" class="btn ${cls}" data-f="${fn(f)}" ${attr}>${label}</button>`;
+const dis=(label,why,cls='')=>`<button type="button" class="btn ${cls}" aria-disabled="true" data-why="${esc(why)}" title="${esc(why)}">${label}</button>`;
+const slug=s=>String(s).toLowerCase().replace(/[^a-z0-9]+/g,'-');
+document.addEventListener('click',e=>{const w=e.target.closest('[data-why]');if(w){e.preventDefault();toast(w.dataset.why);return}const b=e.target.closest('[data-f]');if(!b||b.disabled)return;const f=FN.get(+b.dataset.f);if(f){e.preventDefault();f(b,e)}});
+const PILL={ok:['Active','Paid','Approved','Approved by customer','Converted','Recovered','Completed','Healthy'],warn:['Paused','Trial','Open','Sent','Pending','PO received','Link sent','Attention','Cancelling','Awaiting payment'],bad:['Overdue','Failed','Cancelled','Rejected','Stale','Expired','At risk','Deleted'],info:['Scheduled']};
+const pill=s=>{const k=Object.keys(PILL).find(k=>PILL[k].includes(s))||'mut';return `<span class="pill p-${k}">${esc(s)}</span>`};
+const STATE={completed:['Completed','ok','✓'],scheduled:['Scheduled','info','🗓'],pending_approval:['Pending approval','warn','⏳'],awaiting_customer:['Awaiting customer','warn','⏳'],awaiting_payment:['Awaiting payment','warn','⏳'],payment_failed:['Payment failed','bad','✗'],rejected:['Rejected','bad','✗'],stale:['Needs re-submission','bad','!']};
+const stPill=s=>`<span class="pill p-${STATE[s]?.[1]||'mut'}">${STATE[s]?.[0]||esc(s)}</span>`;
+
+/* ---------- state ---------- */
+const S={role:'sales',ctx:null,ctxInfo:null,view:null,back:[],txn:null,txns:[],trace:[],plan:null,
+ metrics:{tx:[],intents:{total:0,direct:0,context:0,clarified:0,unknown:0,notFound:0},blocked:0,dupes:0,conflicts:0},test:{run:null,results:[]}};
+const actor=()=>M.ACTORS[S.role];
+
+/* ---------- Store API gateway + trace ---------- */
+function call(name,...args){const t0=performance.now();let out,err;try{out=Store.api[name](actor(),...args)}catch(e){err=e}
+ trace(`${name}(${args.map(a=>a==null?'null':JSON.stringify(a)).join(', ').slice(0,170)})`,err?`✗ ${err.code||'ERR'} — ${err.message}`:`✓ ${(performance.now()-t0).toFixed(1)} ms`,err?'err':'');
+ if(err){if(err.code)return{error:{code:err.code,message:err.message,fixes:err.fixes||[],now:err.now}};console.error(err);return{error:{code:'BUG',message:String(err)}}}return out}
+function demo(name,...a){const r=Store.api.demo[name](...a);trace(`demo.${name}(${a.join(', ')})  [simulated external event]`,r?'✓':'– nothing to do');return r}
+function trace(c,res,cls=''){S.trace.unshift({t:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'}),c,res,cls});if(S.trace.length>150)S.trace.length=150;renderTrace()}
+let trq=0;function renderTrace(){if(trq)return;trq=requestAnimationFrame(()=>{trq=0;$('#tracen').textContent=S.trace.length;$('#tracel').innerHTML=S.trace.slice(0,90).map(x=>`<li class="${x.cls}"><b>${x.t}</b> ${esc(x.c)} — ${esc(x.res)}</li>`).join('')})}
+
+/* ---------- feedback ---------- */
+let tt;function toast(m){let el=$('.toast');if(!el){el=document.createElement('div');el.className='toast';el.setAttribute('role','status');document.body.append(el)}el.textContent=m;clearTimeout(tt);tt=setTimeout(()=>el.remove(),4000)}
+const announce=m=>{$('#sr-status').textContent='';setTimeout(()=>$('#sr-status').textContent=m,30)};
+
+/* ---------- chat ---------- */
+const scrollLog=()=>{const l=$('#log');l.scrollTop=l.scrollHeight};
+function you(t){const d=document.createElement('div');d.className='msg u';d.innerHTML='<div class="bub"></div>';d.firstChild.textContent=t;$('#log').append(d);scrollLog()}
+function say(html,btns=[]){const d=document.createElement('div');d.className='msg a';d.innerHTML=`<div class="bub">${html}${btns.length?`<div class="btns">${btns.join('')}</div>`:''}</div>`;$('#log').append(d);scrollLog();return d}
+
+/* ---------- metrics (session-local instrumentation) ---------- */
+const Metrics={start(op,ref,org,src){const m={id:S.metrics.tx.length+1,op,ref,org,src,role:S.role,t0:Date.now(),clicks:0,steps:['edit'],out:null,t1:null};S.metrics.tx.push(m);return m},
+ step(m,s){if(m&&!m.out)m.steps.push(s)},end(m,out){if(!m||m.out)return;m.out=out;m.t1=Date.now()},
+ intent(r){const I=S.metrics.intents;I.total++;if(r.kind==='unknown')I.unknown++;else if(r.kind==='notFound')I.notFound++;else if(r.kind==='clarify')I.clarified++;else if(r.usedCtx)I.context++;else I.direct++}};
+document.addEventListener('click',()=>{if(S.txn&&S.txn.m&&!S.txn.m.out)S.txn.m.clicks++;if(S.test.run&&!S.test.run.done)S.test.run.clicks++},true);
+
+/* ---------- usability test runner ---------- */
+const SCEN=[
+ {id:'S1',role:'sales',title:'Find an account',task:'Find Brightline Analytics and identify its active Zoho CRM license.',check:(t,d)=>t==='c360'&&d.zoid==='ZO-60012'},
+ {id:'S2',role:'sales',title:'Upgrade a license',task:'Increase Brightline’s Zoho CRM from 45 to 60 users and review the commercial impact.',check:(t,d)=>t==='review'&&d.ref==='2500000/201'&&d.params.users===60},
+ {id:'S3',role:'sales',title:'Create a new purchase',task:'Prepare a Zoho Desk estimate for Brightline Freight and get the customer approval link.',check:(t,d)=>t==='done'&&d.op==='buy'&&d.ref==='ZO-61877'&&d.state==='awaiting_customer'},
+ {id:'S4',role:'sales',title:'Resolve a blocker',task:'Find out why Brightline’s Zoho One renewal is blocked and what the next step is.',check:(t,d)=>(t==='block'&&d.ref==='2500000/202')||(t==='diagnose'&&d.zoid==='ZO-60012')},
+ {id:'S5',role:'sales',title:'Update billing',task:'Change Corvina’s billing street to “500 Willow Creek Rd” and then find that change in its history.',check:(t,d,f)=>{if(t==='done'&&d.op==='addr'&&d.ref==='ZO-60177')f.a=1;return!!f.a&&t==='drawer'&&d.zoid==='ZO-60177'}},
+ {id:'P1',role:'pam',title:'Portfolio renewals',task:'List the renewals due in the next 30 days across your partners.',check:(t,d)=>t==='view'&&d.name==='renewals'},
+ {id:'P2',role:'pam',title:'Recover a payment',task:'Corvina’s card was declined on its Zoho Books renewal — get the payment moving.',check:(t,d)=>t==='done'&&d.op==='settle'&&d.ref==='ZO-60177'},
+ {id:'P3',role:'pam',title:'Close a usage gap',task:'Kestrel Timbers has more active employees than licensed — fix it.',check:(t,d)=>t==='done'&&d.op==='change'&&d.ref==='2700100/701'&&d.params.users>=4}];
+let bannerTimer=null;
+function emit(type,d={}){const r=S.test.run;if(r&&!r.done){const sc=SCEN.find(x=>x.id===r.id);if(sc.check(type,d,r.flags)){r.done=true;r.t1=Date.now();renderBanner();announce('Scenario complete')}}}
+function startScenario(id){const sc=SCEN.find(x=>x.id===id);Store.api.demo.reset();S.txns=[];setRole(sc.role,{quiet:true});S.test.run={id,t0:Date.now(),clicks:0,flags:{},done:false};renderBanner();clearInterval(bannerTimer);bannerTimer=setInterval(renderBanner,1000);say(`<b>Usability scenario ${sc.id} started.</b> Demo data was reset. Task: ${esc(sc.task)}`)}
+function rateScenario(rating){const r=S.test.run,sc=SCEN.find(x=>x.id===r.id);S.test.results.push({id:r.id,title:sc.title,role:sc.role,secs:Math.round(((r.t1||Date.now())-r.t0)/1000),clicks:r.clicks,completed:!!r.done,rating,at:new Date().toISOString()});S.test.run=null;clearInterval(bannerTimer);renderBanner();toast('Result recorded: '+rating);if(S.view?.name==='test')render()}
+function renderBanner(){const r=S.test.run,b=$('#banner');if(!r){b.innerHTML='';return}const sc=SCEN.find(x=>x.id===r.id),secs=Math.round(((r.t1||Date.now())-r.t0)/1000);
+ b.innerHTML=`<div class="banner" role="region" aria-label="Usability scenario">${r.done?`<b>✓ ${sc.id} completed in ${secs}s · ${r.clicks} clicks.</b> Facilitator rating:${btn('Easy',()=>rateScenario('Easy'),'sm')}${btn('With help',()=>rateScenario('With help'),'sm')}${btn('Failed',()=>rateScenario('Failed'),'sm')}`:`<b>Scenario ${sc.id}</b><span>${esc(sc.task)}</span><span class="num">${secs}s · ${r.clicks} clicks</span>${btn('Give up',()=>rateScenario('Failed'),'sm')}`}</div>`}
+
+/* ---------- workspace navigation ---------- */
+function show(name,args={},o={}){if(!$('#drawer').hidden)closeDrawerQuiet();if(o.push!==false&&S.view&&!(S.view.name===name&&JSON.stringify(S.view.args)===JSON.stringify(args)))S.back.push(S.view);if(S.back.length>30)S.back.shift();S.view={name,args};render(o)}
+function goBack(){if(!S.back.length)return;S.view=S.back.pop();render({focus:true})}
+let qTimer=null;
+function render(o={}){clearInterval(qTimer);const v=VIEWS[S.view.name](S.view.args)||{};$('#ws-h').textContent=v.title||'';$('#ws-crumb').innerHTML=v.crumb||'';$('#ws').innerHTML=v.html||'';$('#wsBack').hidden=!S.back.length;$('#ws').scrollTop=0;
+ if(v.after)v.after();renderCtx();updBadge();if(o.pane!==false)setPane('ws',true);if(o.focus)$('#ws-h').focus();emit('view',{name:S.view.name,args:S.view.args})}
+function setPane(p,auto){if(auto&&window.innerWidth>860)return;document.body.dataset.pane=p;$('#tabChat').setAttribute('aria-selected',String(p==='chat'));$('#tabWs').setAttribute('aria-selected',String(p==='ws'))}
+document.querySelectorAll('.mtabs button').forEach(b=>b.onclick=()=>setPane(b.dataset.pane));
+$('#wsBack').onclick=goBack;
+
+/* ---------- customer context bar ---------- */
+function setCtx(z){S.ctx=z;S.ctxInfo=z?call('cust360',z):null;if(S.ctxInfo&&S.ctxInfo.error){S.ctx=null;S.ctxInfo=null}renderCtx();renderSugg()}
+function renderCtx(){const b=$('#ctxbar'),d=S.ctxInfo;if(!S.ctx||!d){b.hidden=true;return}const c=d.c;b.hidden=false;
+ b.innerHTML=`<span class="mut small">Customer in context</span><span class="who"><b>${esc(c.org)}</b><span class="mut small">${esc(c.zoid)} · ${esc(c.email)}${c.partnerInfo?' · '+esc(c.partnerInfo.name)+(c.billTo==='partner'?' (billed to partner)':''):' · direct'}</span>${pill(c.health)}</span><span class="btns">${btn('Customer 360',()=>openC360(c.zoid,{focus:true}),'sm')}${btn('Complete history',()=>openDrawer(c.zoid),'sm')}${btn('✕',()=>{setCtx(null);toast('Customer context cleared')},'sm ghost','aria-label="Clear customer context"')}</span>`}
+
+/* ---------- header: roles, approvals badge, menu ---------- */
+$('#roles').innerHTML=Object.entries(M.ROLE_LABEL).map(([k,v])=>`<button type="button" data-r="${k}" aria-pressed="${k===S.role}">${v}</button>`).join('');
+$('#roles').addEventListener('click',e=>{const b=e.target.closest('[data-r]');if(b&&b.dataset.r!==S.role)setRole(b.dataset.r)});
+function updBadge(){const L=call('approvals');const n=Array.isArray(L)?L.filter(x=>x.st==='Pending'&&(S.role==='admin'?x.requester.name!==actor().name:true)).length:0;$('#bAppr').innerHTML=`Approvals${n?`<span class="bdg" aria-label="${n} pending">${n}</span>`:''}`}
+$('#bAppr').onclick=()=>show('approvals',{},{focus:true});
+$('#menu').addEventListener('toggle',()=>{if($('#menu').open)renderMenu()});
+document.addEventListener('click',e=>{if($('#menu').open&&!e.target.closest('#menu'))$('#menu').open=false});
+function renderMenu(){const L=Store.api.demo.lists(),close=f=>()=>{$('#menu').open=false;f()};
+ $('#menupop').innerHTML=`<h4>Go to</h4>${btn('Today',close(()=>show('home',{},{focus:true})))}${btn('Renewals',close(()=>show('renewals',{days:30},{focus:true})))}${btn('Billing recovery',close(()=>show('recovery',{},{focus:true})))}${btn('Partner portfolio',close(()=>show('portfolio',{},{focus:true})))}
+ <h4>Evaluate</h4>${btn('Session metrics',close(()=>show('metrics',{},{focus:true})))}${btn('Usability test runner',close(()=>show('test',{},{focus:true})))}${btn('About this prototype',close(()=>show('about',{},{focus:true})))}
+ <h4>Demo — simulate external events</h4>
+ ${L.est.map(e=>btn(`Customer approves ${e.n} · ${esc(e.org)}`,close(()=>{demo('custApprove',e.n);toast(e.n+' approved by customer (simulated)');refresh()}),'sm')).join('')}
+ ${L.inv.slice(0,8).map(i=>btn(`Payment received ${i.n} · ${esc(i.org)} · ${money(i.ccy,i.amt)}`,close(()=>{demo('pay',i.n);toast(i.n+' paid (simulated)');refresh()}),'sm')).join('')}
+ ${S.txn&&S.txn.ctx&&S.txn.ctx.level==='lic'&&!S.txn.done?btn(`Another user edits ${S.txn.ref} (concurrency)`,close(()=>{demo('concurrent',S.txn.ref);toast('Subscription changed by another user (simulated)')}),'sm'):''}
+ ${btn('Another user edits Corvina Desk 2500100/301',close(()=>{demo('concurrent','2500100/301');toast('2500100/301 changed by another user (simulated)');refresh()}),'sm')}
+ <h4>Session</h4>${btn('Reset demo data',close(()=>{Store.api.demo.reset();S.txns=[];setRole(S.role);toast('Demo data reset')}))}`}
+function refresh(){if(S.ctx)setCtx(S.ctx);if(S.view&&S.view.name!=='txn')render({pane:false});updBadge()}
+
+/* ---------- global search (combobox) ---------- */
+const qi$=$('#q'),qres=$('#qres');let qi=-1,qitems=[];
+function renderQ(){const has=qi$.value.trim().length>=2;qres.hidden=!has;qi$.setAttribute('aria-expanded',String(has));
+ qres.innerHTML=qitems.length?qitems.map((x,i)=>`<li role="option" id="qo${i}" aria-selected="${i===qi}" data-i="${i}"><span class="k">${x.kind}</span><span><b>${esc(x.title)}</b><span class="s">${esc(x.sub)}</span></span></li>`).join(''):(has?'<li role="option" aria-disabled="true" class="mut">No matches in your accounts.</li>':'');
+ if(qi>=0)qi$.setAttribute('aria-activedescendant','qo'+qi);else qi$.removeAttribute('aria-activedescendant')}
+qi$.addEventListener('input',()=>{const v=qi$.value;qitems=v.trim().length<2?[]:(call('search',v)||[]);if(qitems.error)qitems=[];qi=qitems.length?0:-1;renderQ()});
+qi$.addEventListener('keydown',e=>{if(e.key==='ArrowDown'){qi=Math.min(qitems.length-1,qi+1);renderQ();e.preventDefault()}else if(e.key==='ArrowUp'){qi=Math.max(0,qi-1);renderQ();e.preventDefault()}else if(e.key==='Enter'){const it=qitems[Math.max(0,qi)];if(it){pickQ(it);e.preventDefault()}}else if(e.key==='Escape'){qi$.value='';qitems=[];renderQ()}});
+qi$.addEventListener('blur',()=>setTimeout(()=>{qres.hidden=true;qi$.setAttribute('aria-expanded','false')},180));
+qres.addEventListener('mousedown',e=>{const li=e.target.closest('[data-i]');if(li){e.preventDefault();pickQ(qitems[+li.dataset.i])}});
+function pickQ(it){qi$.value='';qitems=[];renderQ();qres.hidden=true;openC360(it.zoid,{focus:true,hl:it.ref})}
+document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();qi$.focus();qi$.select()}});
+
+/* ---------- complete customer record (drawer) ---------- */
+let drz=null,drtab='history',drcat='All',drPrev=null;
+function openDrawer(z,tab){drz=z;drtab=tab||'history';drcat='All';drPrev=document.activeElement;$('#drawer').hidden=false;renderDrawer();$('#drx').focus();emit('drawer',{zoid:z})}
+function closeDrawer(){$('#drawer').hidden=true;drz=null;if(drPrev&&drPrev.isConnected)drPrev.focus()}
+$('#drx').onclick=closeDrawer;
+$('#drawer').addEventListener('keydown',e=>{if(e.key==='Escape'){e.stopPropagation();closeDrawer()}if(e.key==='Tab'){const f=[...$('#drawer').querySelectorAll('button,[href],input,select,textarea,[tabindex]:not([tabindex="-1"])')].filter(x=>!x.disabled&&x.offsetParent);if(!f.length)return;const a=f[0],z=f[f.length-1];if(e.shiftKey&&document.activeElement===a){z.focus();e.preventDefault()}else if(!e.shiftKey&&document.activeElement===z){a.focus();e.preventDefault()}}});
+function renderDrawer(){const h=call('history',drz);if(h.error){closeDrawer();return}$('#drt').textContent=h.org;$('#drs').textContent=`${h.zoid} · ${h.email}${h.partner?' · '+h.partner.name+' ('+h.partner.code+')':' · direct'} · owner ${h.owner}`;
+ const tabs=[['history','History'],['licenses','Subscriptions'],['estimates','Estimates'],['billing','Invoices & payments'],['approvals','Approvals'],['overview','Profile']];
+ $('#drtabs').innerHTML=tabs.map(([k,t])=>`<button role="tab" aria-selected="${k===drtab}" data-f="${fn(()=>{drtab=k;renderDrawer();$('#drtabs [aria-selected=true]').focus()})}">${t}</button>`).join('');
+ const ccy=h.lics[0]?.ccy||'USD';let x='';
+ if(drtab==='history'){const cats=['All','Subscription','Order','Estimate','Payment','Change','Approval'];const ev=h.hist.filter(e=>drcat==='All'||e.cat===drcat);
+  x=`<div class="cats" role="group" aria-label="Filter history">${cats.map(k=>`<button type="button" aria-pressed="${k===drcat}" data-f="${fn(()=>{drcat=k;renderDrawer()})}">${k}</button>`).join('')}</div><ol class="tl">${ev.map(e=>`<li class="${e.fresh?'fresh':''}"><div class="d">${e.d} · ${esc(e.cat)} · ${esc(e.ref)} · ${esc(e.by)}</div><div class="t">${esc(e.t)}${e.fresh?'<span class="new">this session</span>':''}</div><div class="mut">${esc(e.det)}</div></li>`).join('')||'<li class="mut">No events in this category.</li>'}</ol>`}
+ if(drtab==='licenses')x=h.lics.map(l=>`<div class="card"><h3>${esc(l.name)} · ${esc(l.id)} ${pill(l.st)}</h3><div class="row"><span>Plan · users</span><span>${esc(l.plan)} · ${l.users}${l.act?` (${l.act} active)`:''}</span></div><div class="row"><span>Recurring / yr (billed)</span><span>${money(l.ccy,l.annual)}${l.disc?` · ${l.disc}% off until ${l.discExp}`:''}</span></div><div class="row"><span>Recurring date</span><span>${l.exp} (${l.days} days)</span></div><div class="row"><span>Payment · auto-renew</span><span>${esc(l.pm)} · ${l.auto?'On':'Off'}</span></div>${l.sched?`<div class="row"><span>Scheduled change</span><span>${l.sched.users} users · ${esc(l.sched.plan)} from ${l.sched.from}</span></div>`:''}</div>`).join('');
+ if(drtab==='estimates')x=h.est.map(e=>`<div class="row"><span>${e.n} · ${esc(M.CAT[e.p].name)} ${esc(e.plan)} · ${e.users} users</span><span>${money(e.ccy,e.amt)} ${pill(e.st)}</span></div>`).join('')||'<p class="mut">No estimates.</p>';
+ if(drtab==='billing')x=`<div class="card"><h3>Invoices</h3>${h.inv.map(i=>`<div class="row"><span>${i.n} · ${esc(i.lic)}${i.po?' · PO '+esc(i.po):''}</span><span>${money(i.ccy,i.amt)} ${pill(i.st)}<br><span class="small mut">due ${i.due}${i.expPay?' · expected '+i.expPay:''}</span></span></div>`).join('')||'<p class="mut">None.</p>'}</div><div class="card"><h3>Payments</h3>${h.pay.map(p=>`<div class="row"><span>${p.id} · ${esc(p.why)}</span><span>${money(ccy,p.amt)} ${pill(p.st)}</span></div>`).join('')||'<p class="mut">None.</p>'}</div><div class="card"><h3>Orders</h3>${h.ord.map(o=>`<div class="row"><span>${o.n} · ${esc(o.type)} · ${esc(o.lic)}</span><span>${money(ccy,o.amt)} ${pill(o.st)}</span></div>`).join('')||'<p class="mut">None.</p>'}</div>`;
+ if(drtab==='approvals')x=h.appr.map(a=>`<div class="row"><span>${a.id} · ${esc(a.label)} · ${esc(a.summary)}<br><span class="small mut">by ${esc(a.requester.name)} on ${a.created}${a.decidedBy?' · decided by '+esc(a.decidedBy):''}${a.note?' · '+esc(a.note):''}</span></span><span>${pill(a.st)}</span></div>`).join('')||'<p class="mut">No approval requests.</p>';
+ if(drtab==='overview')x=`<div class="card"><h3>Profile</h3><div class="row"><span>Organization</span><span>${esc(h.org)}</span></div><div class="row"><span>Org ID · CRM account</span><span>${esc(h.zoid)} · ${esc(h.crm)}</span></div><div class="row"><span>Account owner</span><span>${esc(h.owner)}</span></div><div class="row"><span>Partner</span><span>${h.partner?esc(h.partner.name)+' · '+h.partner.agreement:'Direct'}</span></div><div class="row"><span>Invoices billed to</span><span>${esc(h.billTo)}</span></div><div class="row"><span>Billing address</span><span>${esc([h.addr.street,h.addr.city,h.addr.state,h.addr.country,h.addr.zip].join(', '))}</span></div></div><div class="card"><h3>Notification recipients</h3><div class="row"><span>Purchase</span><span>${h.rcp.purchase.map(r=>esc(r.n+' <'+r.e+'>')).join('<br>')}</span></div><div class="row"><span>Invoice</span><span>${h.rcp.invoice.map(r=>esc(r.n+' <'+r.e+'>')).join('<br>')}</span></div></div>`;
+ $('#drb').innerHTML=x}
+
+/* ---------- role switching & greeting ---------- */
+const SUGG={sales:['What needs my attention today?','Brightline wants to add 15 CRM users — what’s the price and can we complete it?','Upgrade Brightline CRM to 60 users with 25% discount','Why can’t Brightline renew Zoho One?','Prepare an estimate for Zoho Desk for Brightline Freight','Marlow Outfitters is cancelling — undo it','Remove discount on Pinewood Labs','Renew subscriptions expiring this month'],
+ pam:['Renewals in the next 30 days','Recover the failed payment for Corvina','Kestrel needs 1 more employee','Renew Ironvale Fabrication CRM','Change billing address for Corvina','Cancel Pinewood Labs Projects'],
+ partner:['Renewals in the next 30 days','Buy Zoho Projects for Corvina','Payment link for Brightline','Show Ironvale Fabrication','Add a notification recipient for Brightline','Pause Pinewood Labs'],
+ admin:['Show approvals','Failed payments','Discount 20% on Halden CRM','What needs attention today?']};
+function renderSugg(){let L=SUGG[S.role].slice(0,6);if(S.ctxInfo){const o=S.ctxInfo.c.org.split(' ')[0];L=[`Show everything that happened to ${o}`,`Why is ${o} blocked?`,...L].slice(0,6)}
+ $('#sugg').innerHTML=L.map(t=>btn(esc(t),()=>send(t),'sm')).join('')}
+function setRole(r,o={}){if(S.txn&&S.txn.m)Metrics.end(S.txn.m,'abandoned');S.role=r;S.ctx=null;S.ctxInfo=null;S.back=[];S.txn=null;S.view=null;closeDrawerQuiet();$('#log').innerHTML='';
+ document.querySelectorAll('#roles [data-r]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.r===r)));renderCtx();renderSugg();show('home',{},{push:false,pane:false});if(!o.quiet)greet()}
+function closeDrawerQuiet(){$('#drawer').hidden=true;drz=null}
+function greet(){const a=actor(),h=call('home'),top=h.nba[0];
+ const fn1=a.name.split(' ')[0],who={sales:()=>`Morning, ${fn1}.`,pam:()=>`Hi ${fn1} — ${h.customers} partner customers across ${a.partners.length} partners.`,partner:()=>`Hi ${fn1} (${a.title}).`,admin:()=>`Hi ${fn1}. ${h.appr} approval request(s) waiting for you.`}[S.role]();
+ say(`${esc(who)} ${h.nba.length?`${h.nba.length} things need attention; the top one: <b>${esc(top.title)}</b>.`:'Nothing urgent today.'} Tell me the outcome you need, or pick something from Today.`,top&&top.ok?[btn(esc(top.cta),()=>runNba(top),'p sm')]:[])}
+
+/* ---------- agent orchestration (chat → workflow) ---------- */
+$('#composer').addEventListener('submit',e=>{e.preventDefault();const v=$('#in').value;$('#in').value='';send(v)});
+const VIEWNAME={home:'Today',renewals:'Renewals',approvals:'Approvals',portfolio:'Portfolio',recovery:'Billing recovery',c360:'Customer 360',history:'Complete history',diagnose:'Why is it blocked?'};
+function prettyPre(k,v,r){const l=r.lic;if(k==='users')return l?`users ${l.users} → ${v}`:`${v} users`;if(k==='disc')return `discount ${v}%`;if(k==='discExp')return `until ${v}`;if(k==='plan')return `plan → ${v}`;if(k==='p')return M.CAT[v]?M.CAT[v].name:v;if(k==='term')return `${v}-year term`;if(k==='method')return v==='po'?'via PO':'via payment link';if(k==='inv')return v;return `${k}: ${v}`}
+function understood(r){const bits=[M.OPS[r.wf]?.label||VIEWNAME[r.wf]||r.wf];if(r.cust)bits.push(r.cust.org+(r.why?` · ${r.why}`:''));if(r.lic)bits.push(`${r.lic.name} ${r.lic.id}`);if(r.est)bits.push(r.est.n);for(const[k,v]of Object.entries(r.prefill||{}))bits.push(prettyPre(k,v,r));
+ return `<div class="und" aria-label="What I understood">${bits.map(b=>`<span>${esc(b)}</span>`).join('')}<span class="cf-${r.confidence==='medium'?'medium':'high'}">${r.confidence==='medium'?'check the customer':'understood'}</span></div>`}
+function send(text){text=String(text||'').trim();if(!text)return;you(text);const dir=call('directory');const r=Agent.parse(text,dir,S.ctx);trace('agent.intent '+JSON.stringify(Agent.intentJSON(r)),'parsed','intent');Metrics.intent(r);handle(r,dir)}
+function handle(r,dir){S.plan=r;
+ if(r.kind==='unknown')return say('I can help you close deals, change licenses, renew, clear billing blockers and update billing details. Try one of these:',SUGG[S.role].slice(0,3).map(t=>btn(esc(t),()=>send(t),'sm')));
+ if(r.kind==='notFound')return say(`I couldn’t find <b>${esc(r.what)}</b> in your accounts. Check the spelling, or search by email, org ID or license ID (Ctrl+K).`);
+ if(r.kind==='say')return say(esc(r.msg));
+ if(r.kind==='clarify')return say(`${esc(r.q)}${r.hint?` <span class="mut">${esc(r.hint)}</span>`:''}`,r.options.map(o=>btn(`${esc(o.label)}<span class="mut small">${esc(o.sub||'')}</span>`,()=>{const d2=call('directory');handle(Agent.choose(r,r.ask,o.v,d2,S.ctx),d2)},'sm')));
+ if(r.kind==='view')return openView(r);
+ openFromPlan(r)}
+function openView(r){const a=r.args||{};
+ if(r.wf==='c360'){say(`Opened <b>${esc(r.cust.org)}</b>.`+understood(r));return openC360(a.z,{fromChat:true})}
+ if(r.wf==='history'){setCtx(a.z);say(`Here is everything recorded for <b>${esc(r.cust.org)}</b>.`+understood(r));return openDrawer(a.z)}
+ if(r.wf==='diagnose'){setCtx(a.z);say(`Here’s what is blocking <b>${esc(r.cust.org)}</b> and how to clear it.`+understood(r));return show('diagnose',a)}
+ const lbl={home:'Here’s today, ranked by commercial urgency.',renewals:`Renewals due in the next ${a.days||30} days.`,approvals:'Approval requests.',portfolio:'Partner portfolio.',recovery:'Failed payments and overdue invoices across your accounts.'}[r.wf];
+ say(esc(lbl));show(r.wf,r.wf==='renewals'?{days:a.days||30}:{})}
+function openFromPlan(r){const pf=r.prefill||{};
+ if(r.mode==='quote'){const pv=call('preview',r.wf,r.ref,pf);
+  if(pv.error)return say(esc(pv.error.message));
+  if(pv.block){say(`<b>${esc(r.cust.org)}</b> — ${esc(M.OPS[r.wf].label)} isn’t possible right now: ${esc(pv.block.reason)}`+understood(r),pv.block.fixes.map(f=>btn(esc(f[0]),()=>openTxn(f[1],f[2],{},{src:'agent'}),'p sm')));return openTxn(r.wf,r.ref,pf,{src:'agent',fromChat:true})}
+  const m=pv.money;let msg=`<b>${esc(r.cust.org)}</b>`;
+  if(m&&pv.changes.length){msg+=`: ${pv.changes.map(c=>`${esc(c[0])} ${esc(c[1])} → ${esc(c[2])}`).join(', ')}. <b>${money(m.ccy,m.dueNow?m.dueNow.total:0)} due now</b> (${esc(m.dueNow?m.dueNow.basis:'')}${m.dueNow&&m.dueNow.tax?', incl. '+esc(m.dueNow.taxLabel):''}); recurring ${money(m.ccy,m.recurring.before)} → <b>${money(m.ccy,m.recurring.after)}/yr</b>. ${pv.approval?`Needs ${esc(pv.approval.approver)} approval (${esc(pv.approval.why)}).`:'No approval needed.'} ${pv.errors.length?'Still needed before submitting: '+esc(pv.errors.join(' ')):'You can complete it now.'}`}
+  else msg+=': tell me what should change (users, plan, add-ons) and I’ll price it.';
+  say(msg+`<div class="small mut">Prices from the mock pricing service — not authoritative.</div>`+understood(r));return openTxn(r.wf,r.ref,pf,{src:'agent',fromChat:true})}
+ const hasPf=Object.keys(pf).length;say(`Opened <b>${esc(M.OPS[r.wf].label)}</b> for ${esc(r.cust.org)}${hasPf?' and pre-filled it from your request':''}. Review the impact on the right before submitting.`+understood(r));
+ openTxn(r.wf,r.ref,pf,{src:'agent',fromChat:true})}
+function runNba(x){if(x.op)openTxn(x.op,x.ref,x.prefill||{},{src:'nba',focus:true})}
+
+'use strict';
+/* ---------- form field specs per workflow (UI only — validation & pricing are server-side) ---------- */
+const isCardPm=pm=>/visa|mastercard|amex/i.test(pm||'');
+const canDo=perm=>Store.api.can(actor(),perm).ok;
+const REASONS={cancel:['Too expensive','Missing features','Moved to competitor','Business closed'],pause:['Customer request','Budget review','Seasonal pause'],discRemove:['Contract ended','Customer request','Entered in error'],deleteEst:['Created in error','Customer declined','Replaced by a new estimate']};
+const routeFields=()=>[{k:'route',l:'How will the customer commit?',t:'select',full:1,o:[['estimate','Estimate — customer approves online'],['po','Signed purchase order']],v:'estimate'},{k:'po',l:'PO number',t:'text',v:'',show:v=>v.route==='po'},{k:'legal',l:'Legal has approved this PO',t:'check',v:false,full:1,show:v=>v.route==='po'}];
+const FIELDS={
+ change(x){const l=x.t,f=[],plans=l.ccy==='INR'?Object.keys(M.INR_PLANS):Object.keys(M.CAT[l.p].plans),ads=M.ADDONS[l.p]||[];
+  f.push({k:'users',l:`Users (licensed ${l.users}${l.act?` · ${l.act} active`:''})`,t:'number',min:1,v:l.users},{k:'plan',l:'Plan',t:'select',o:plans,v:l.plan});
+  if(canDo('discount'))f.push({k:'disc',l:'Recurring discount %',t:'number',min:0,max:90,v:l.disc||0},{k:'discExp',l:'Discount expiry',t:'date',v:l.discExp||uDay(365),show:v=>Number(v.disc)!==(l.disc||0)&&Number(v.disc)>0});
+  ads.forEach(a=>f.push({k:'ad.'+a.k,l:`${a.n}${a.priv?' · private':''} — ${money(l.ccy,a.pr[l.ccy])}/unit/yr${(l.adAct||{})[a.k]?` · ${(l.adAct||{})[a.k]} in use`:''}`,t:'number',min:0,v:(l.ad||{})[a.k]||0,more:!((l.ad||{})[a.k]||(l.adAct||{})[a.k])}));
+  if(ads.some(a=>a.sv))f.push({k:'sv',l:'Zoho One Support has validated the Commerce add-on requirement',t:'check',v:false,full:1,show:v=>Number(v['ad.comm'])>((l.ad||{}).comm||0)});
+  f.push({k:'eff',l:'When',t:'select',full:1,o:[['now','Now — prorated charge for the rest of the term'],['renewal',`At the next recurring date (${l.exp}) — nothing charged today`]],v:'now'},
+   {k:'lt',l:'Bill via',t:'select',o:[['Invoice',isCardPm(l.pm)?'Card on file ('+l.pm+')':'Invoice (NET 30)'],['PO','Purchase order']],v:'Invoice'},{k:'po',l:'PO number',t:'text',v:'',show:v=>v.lt==='PO'});
+  if(['sales','admin'].includes(S.role))f.push({k:'note',l:'Sales note — pushed to the CRM deal',t:'textarea',v:'',full:1,ph:'e.g. New support team; budget confirmed by Tess'});
+  return f},
+ renew:x=>[{k:'term',l:'Renewal term',t:'select',o:[['1','1 year'],['2','2 years'],['3','3 years']],v:'1'},{k:'pay',l:'Collect payment',t:'select',o:[['link','Send a payment link to invoice recipients'],...(isCardPm(x.t.pm)?[['card','Charge '+x.t.pm+' now']]:[])],v:'link'}],
+ buy:x=>[{k:'p',l:'Product',t:'select',o:Object.entries(M.CAT).map(([k,v])=>[k,v.name]),v:'desk'},{k:'plan',l:'Plan',t:'select',o:v=>Object.keys(M.CAT[v.p||'desk'].plans),v:'Professional'},{k:'users',l:'Users',t:'number',min:1,v:10},{k:'period',l:'Billing period',t:'select',o:[['yearly','Yearly'],['monthly','Monthly']],v:'yearly'},...routeFields()],
+ convert:x=>[{k:'plan',l:'Plan',t:'select',o:Object.keys(M.CAT[x.t.p].plans),v:x.t.plan},{k:'users',l:`Users (trialling ${x.t.users})`,t:'number',min:1,v:x.t.users},{k:'period',l:'Billing period',t:'select',o:[['yearly','Yearly'],['monthly','Monthly']],v:'yearly'},...routeFields()],
+ enableEst:()=>[],reactivate:()=>[],
+ reassignEst:()=>[{k:'to',l:'Move to customer (email)',t:'email',v:'',full:1,ph:'email of a customer in your accounts'}],
+ deleteEst:()=>[{k:'reason',l:'Reason',t:'select',full:1,o:REASONS.deleteEst,v:REASONS.deleteEst[0]}],
+ discRemove:()=>[{k:'reason',l:'Reason',t:'select',full:1,o:REASONS.discRemove,v:REASONS.discRemove[0]}],
+ pause:x=>x.t.st==='Paused'?[]:[{k:'reason',l:'Reason',t:'select',full:1,o:REASONS.pause,v:REASONS.pause[0]}],
+ cancel:x=>[{k:'when',l:'When',t:'select',full:1,o:[['end',`At the end of the term (${x.t.exp}) — can be undone until then`],['now','Immediately — users lose access today']],v:'end'},{k:'reason',l:'Reason',t:'select',o:REASONS.cancel,v:REASONS.cancel[0]},{k:'comment',l:'Comment for the record',t:'textarea',full:1,v:''}],
+ settle(x){const inv=x.inv.filter(i=>['Open','Overdue'].includes(i.st)).sort((a,b)=>(a.st==='Overdue'?0:1)-(b.st==='Overdue'?0:1));
+  return[{k:'inv',l:'Invoice',t:'select',full:1,o:inv.map(i=>[i.n,`${i.n} · ${money(i.ccy,i.amt)} · ${i.st} · due ${i.due}`]),v:inv[0]?inv[0].n:''},
+   {k:'method',l:'How',t:'select',full:1,o:v=>{const i=inv.find(z=>z.n===v.inv)||inv[0],pm=i?x.pms[i.lic]:'';return[['link','Send a payment link'],['po','Record a purchase order'],...(isCardPm(pm)?[['card','Charge '+pm]]:[])]},v:'link'},
+   {k:'po',l:'PO number',t:'text',v:'',show:v=>v.method==='po'},{k:'legal',l:'Legal has approved this PO',t:'check',v:false,full:1,show:v=>v.method==='po'}]},
+ extend:x=>[{k:'inv',l:'Overdue invoice',t:'select',full:1,o:x.inv.filter(i=>i.st==='Overdue').map(i=>[i.n,`${i.n} · ${money(i.ccy,i.amt)} · due ${i.due}`]),v:(x.inv.find(i=>i.st==='Overdue')||{}).n},{k:'comment',l:'Comment (recorded on the invoice)',t:'textarea',full:1,v:''}],
+ addr(x){const c=x.c,f=[];if(c.partner&&canDo('billTo'))f.push({k:'billTo',l:'Invoices billed to',t:'select',full:1,o:[['customer','Customer'],['partner','Partner — '+c.partnerName]],v:c.billTo});
+  return[...f,{k:'street',l:'Street',t:'text',full:1,v:c.addr.street},{k:'city',l:'City',t:'text',v:c.addr.city},{k:'state',l:'State / Province',t:'text',v:c.addr.state},{k:'country',l:'Country',t:'select',o:['Canada','USA','India','Germany'],v:c.addr.country},{k:'zip',l:'ZIP / Postal code',t:'text',v:c.addr.zip}]},
+ recipAdd:()=>[{k:'type',l:'Notification type',t:'select',o:[['purchase','Purchase'],['invoice','Invoice']],v:'purchase'},{k:'name',l:'Name',t:'text',v:''},{k:'email',l:'Email',t:'email',v:'',full:1}],
+ recipDel:x=>[{k:'who',l:'Recipient to remove',t:'select',full:1,o:[['','Choose…'],...x.c.rcp.purchase.map(r=>['purchase|'+r.e,`Purchase · ${r.n} <${r.e}>`]),...x.c.rcp.invoice.map(r=>['invoice|'+r.e,`Invoice · ${r.n} <${r.e}>`])],v:''}]};
+const opts=(o,v)=>{const L=o.map(q=>Array.isArray(q)?q:[q,q]);const has=L.some(q=>String(q[0])===String(v));return L.map((q,i)=>`<option value="${esc(q[0])}" ${(has?String(q[0])===String(v):i===Math.min(1,L.length-1))?'selected':''}>${esc(q[1])}</option>`).join('')};
+function fieldHTML(f,vals,pre){const id='f_'+f.k.replace(/\W/g,'_'),hid=f.show&&!f.show(vals)?' hid':'',af=pre.has(f.k)?' af':'',badge=pre.has(f.k)?'<span class="agentfill">from your request</span>':'',v=vals[f.k],full=f.full?' full':'';
+ if(f.t==='check')return `<div class="fld ck${full}${hid}" data-k="${f.k}"><input type="checkbox" id="${id}" name="${f.k}" ${v?'checked':''}><label for="${id}">${esc(f.l)}</label></div>`;
+ const lab=`<label for="${id}">${esc(f.l)}${badge}</label>`;
+ if(f.t==='select'){const o=typeof f.o==='function'?f.o(vals):f.o;return `<div class="fld${full}${hid}${af}" data-k="${f.k}">${lab}<select id="${id}" name="${f.k}" data-sig="${esc(JSON.stringify(o))}">${opts(o,v)}</select></div>`}
+ if(f.t==='textarea')return `<div class="fld${full}${hid}${af}" data-k="${f.k}">${lab}<textarea id="${id}" name="${f.k}" rows="2" maxlength="500" ${f.ph?`placeholder="${esc(f.ph)}"`:''}>${esc(v)}</textarea></div>`;
+ return `<div class="fld${full}${hid}${af}" data-k="${f.k}">${lab}<input id="${id}" name="${f.k}" type="${f.t||'text'}" value="${esc(v)}" ${f.min!=null?`min="${f.min}"`:''} ${f.max!=null?`max="${f.max}"`:''} ${f.t==='number'?'inputmode="numeric" step="1"':''} ${f.ph?`placeholder="${esc(f.ph)}"`:''}></div>`}
+function flatPre(p){const o={};for(const[k,v]of Object.entries(p||{})){if(k==='ad'&&v&&typeof v==='object')for(const[a,q]of Object.entries(v))o['ad.'+a]=q;else o[k]=v}return o}
+function syncForm(T){const f=$('#tf');if(!f)return;T.fs.forEach(x=>{const el=f.elements[x.k];if(el)T.vals[x.k]=el.type==='checkbox'?el.checked:el.value});
+ T.fs.forEach(x=>{const w=f.querySelector(`[data-k="${x.k}"]`);if(x.show&&w)w.classList.toggle('hid',!x.show(T.vals));if(typeof x.o==='function'){const el=f.elements[x.k],o=x.o(T.vals),sig=JSON.stringify(o);if(el&&el.dataset.sig!==sig){el.innerHTML=opts(o,el.value);el.dataset.sig=sig;T.vals[x.k]=el.value}}})}
+function paramsOf(T){const p={};for(const f of T.fs){if(f.show&&!f.show(T.vals))continue;const v=T.vals[f.k];if(f.k.startsWith('ad.')){(p.ad=p.ad||{})[f.k.slice(3)]=v===''?NaN:Number(v);continue}p[f.k]=f.t==='number'?(v===''?NaN:Number(v)):f.t==='check'?!!v:v}return p}
+
+/* ---------- shared renderers ---------- */
+const row=(a,b)=>`<div class="row"><span>${a}</span><span>${b}</span></div>`;
+const changesTable=ch=>ch&&ch.length?`<table class="chg"><caption class="sr">Before and after</caption><tbody>${ch.map(c=>`<tr><td>${esc(c[0])}</td><td>${esc(c[1])}</td><td class="arr" aria-label="becomes">→</td><td class="to">${esc(c[2])}</td></tr>`).join('')}</tbody></table>`:'';
+function impactHTML(pv,o={}){if(pv.error)return `<h3>Deal impact</h3><p class="errs" role="alert">${esc(pv.error.message)}</p>`;
+ const m=pv.money,ch=pv.changes||[];let h=`<h3><span>Deal impact</span><span class="src" title="Prices, tax and margins come from the mock pricing service in this prototype. In production they come from the Store estimate API.">Mock pricing · not authoritative</span></h3>`;
+ if(!ch.length)h+='<p class="mut">No changes yet — edit the form and the commercial impact appears here.</p>';
+ else{if(!o.frozen)h+=changesTable(ch);
+  if(m){if(m.dueNow)h+=`<div class="big"><span>Due now<small>${esc(m.dueNow.basis)}${m.dueNow.tax?` · incl. ${esc(m.dueNow.taxLabel)} ${money(m.ccy,m.dueNow.tax)}`:m.dueNow.taxLabel?` · tax ${esc(m.dueNow.taxLabel)}`:''}</small></span><b>${money(m.ccy,m.dueNow.total)}</b></div>`;
+   if(m.recurring){const d=m.recurring.after-m.recurring.before;h+=`<div class="big"><span>Recurring / year<small>${money(m.ccy,m.recurring.before)} today · next recurring date ${esc(m.recurring.next)}</small></span><span style="text-align:right"><b>${money(m.ccy,m.recurring.after)}</b><small class="delta ${d>0.004?'up':d<-0.004?'dn':''}">${d>=0?'+':'−'}${money(m.ccy,Math.abs(d))}/yr</small></span></div>`}
+   if(m.effective)h+=row('Effective',esc(m.effective));
+   if(m.discount)h+=row('Discount',`${m.discount.before}% → ${m.discount.after}%${m.discount.expiry&&m.discount.expiry!=='—'?' until '+esc(m.discount.expiry):''} <span class="mut">(${m.discount.annual<0?'−':'+'}${money(m.ccy,Math.abs(m.discount.annual))}/yr)</span>`);
+   if(m.pay)h+=row('Payment',esc(m.pay));
+   if(m.partner)h+=row('Partner',`${esc(m.partner.name)} · ${esc(m.partner.agreement)}<br><span class="small mut">${m.partner.marginPct}% margin · ${money(m.ccy,m.partner.due.margin)} now · ${money(m.ccy,m.partner.recurring.margin)}/yr · billed to ${esc(m.partner.billTo)}</span>`)}
+  h+=pv.approval?`<div class="apbox"><b>Needs ${esc(pv.approval.approver)} approval</b> — ${esc(pv.approval.why)}. Nothing changes until approved.</div>`:'<div class="small" style="color:var(--ok);margin-top:6px">✓ Within your authority — no approval needed</div>'}
+ if(!o.frozen)h+=(pv.notes||[]).map(n=>`<div class="infobox">${esc(n)}</div>`).join('');
+ if(pv.errors&&pv.errors.length)h+=`<ul class="errs" role="alert">${pv.errors.map(e=>`<li>${esc(e)}</li>`).join('')}</ul>`;
+ return h}
+
+/* ---------- transactions: current → change → review → result ---------- */
+function openTxn(op,ref,prefill={},o={}){const x=call('context',op,ref);if(x.error){say(esc(x.error.message));toast(x.error.message);return}
+ if(S.txn&&S.txn.m&&!S.txn.done)Metrics.end(S.txn.m,'abandoned');
+ if(S.ctx!==x.c.zoid)setCtx(x.c.zoid);
+ S.txn={op,ref,prefill,ctx:x,base:x.v,step:'edit',vals:null,fs:[],q:null,p:null,idem:null,res:null,err:null,done:false,m:Metrics.start(op,ref,x.c.org,o.src||'ui')};
+ if(x.block){S.metrics.blocked++;emit('block',{op,ref,zoid:x.c.zoid})}
+ show('txn',{op,ref},{focus:o.focus||!o.fromChat})}
+function cancelTxn(){const T=S.txn;if(T&&T.m)Metrics.end(T.m,'cancelled');S.txn=null;say('Nothing was changed.');goBack()}
+function currentHTML(T){const x=T.ctx,l=x.t;let r='';
+ if(x.level==='lic'){r=row('Status',pill(l.st)+(l.pausedUntil?` until ${l.pausedUntil}`:''))+row('Plan · users',`${esc(l.plan)} · ${l.users}${l.act?` <span class="mut">(${l.act} active)</span>`:''}`)+row('Recurring / year',`${money(l.ccy,l.annual)}${l.disc?` <span class="mut">· ${l.disc}% discount until ${esc(l.discExp||'—')}</span>`:''}`)+row('Next recurring date',`${l.exp} <span class="mut">(${l.days} days)</span>`)+row('Payment · auto-renew',`${esc(l.pm)} · ${l.auto?'On':'Off'}`);
+  const ad=Object.entries(l.ad||{}).filter(e=>e[1]);if(ad.length)r+=row('Add-ons',ad.map(([k,q])=>esc((M.ADDONS[l.p]||[]).find(a=>a.k===k).n)+' × '+q).join('<br>'));
+  if(l.overdue)r+=row('Overdue invoice',`${l.overdue.n} · ${money(l.ccy,l.overdue.amt)} · due ${l.overdue.due}`);if(l.sched)r+=row('Scheduled change',`${l.sched.users} users · ${esc(l.sched.plan)} from ${l.sched.from}`)}
+ else if(x.level==='est')r=row('Estimate',`${l.n} ${pill(l.st)}`)+row('Product',`${esc(l.name)} ${esc(l.plan)} · ${l.users} users`)+row('Amount',money(l.ccy,l.amt))+row('Created',l.d);
+ else{const c=x.c;
+  if(T.op==='addr')r=row('Billing address',esc([c.addr.street,c.addr.city,c.addr.state,c.addr.country,c.addr.zip].join(', ')))+row('Tax',esc(c.tax))+(c.partner?row('Invoices billed to',esc(c.billTo))+row('Partner',esc(c.partnerName)+' <span class="mut">(partner address managed by the partner)</span>'):'');
+  else if(T.op.startsWith('recip'))r=row('Purchase notifications',c.rcp.purchase.map(q=>esc(`${q.n} <${q.e}>`)).join('<br>'))+row('Invoice notifications',c.rcp.invoice.map(q=>esc(`${q.n} <${q.e}>`)).join('<br>'));
+  else if(T.op==='buy')r=row('Current subscriptions',x.lics.map(q=>`${esc(q.name)} ${esc(q.plan)} · ${q.users} ${pill(q.st)}`).join('<br>'))+row('Pricing',c.partner?esc(c.partnerName)+' agreement · billed to '+esc(c.billTo):'Customer price list')+row('Open estimates',x.est.filter(e=>!['Converted'].includes(e.st)).map(e=>`${e.n} · ${esc(M.CAT[e.p].name)} ${pill(e.st)}`).join('<br>')||'None');
+  else r=x.inv.map(i=>row(`${i.n} · ${esc(i.lic)}`,`${money(i.ccy,i.amt)} ${pill(i.st)} <span class="mut">due ${i.due}${i.expPay?' · expected '+i.expPay:''}${i.linkSent?' · link sent '+i.linkSent:''}</span>`)).join('')||row('Invoices','None open')}
+ return `<div class="card"><h3>Current state <span class="mut small" style="text-transform:none;letter-spacing:0">· read from the Store before any change · v${T.ctx.v}</span></h3>${r}</div>`}
+function editHTML(T){const x=T.ctx;
+ if(x.block)return currentHTML(T)+`<div class="blockbox" role="alert"><b>Not possible right now.</b> ${esc(x.block.reason)}</div><div class="btns" style="margin-top:10px">${x.block.fixes.map(f=>btn(esc(f[0]),()=>openTxn(f[1],f[2],f[1]==='settle'?{method:'link'}:{},{src:'fix',focus:true}),'p')).join('')}${btn('Why is it blocked?',()=>show('diagnose',{z:x.c.zoid,lic:x.level==='lic'?x.ref:null},{focus:true}))}${btn('Back',goBack)}</div>`;
+ const fs=FIELDS[T.op](x);T.fs=fs;const flat=flatPre(T.prefill);T.pre=new Set(Object.keys(flat).filter(k=>fs.some(f=>f.k===k)));
+ if(!T.vals){T.vals={};fs.forEach(f=>T.vals[f.k]=f.k in flat?flat[f.k]:f.v)}
+ const main=fs.filter(f=>!f.more||T.pre.has(f.k)),more=fs.filter(f=>f.more&&!T.pre.has(f.k));
+ return currentHTML(T)+`<div class="split"><form id="tf" class="fm" novalidate aria-label="${esc(M.OPS[T.op].label)}">${main.map(f=>fieldHTML(f,T.vals,T.pre)).join('')}${more.length?`<details class="full"><summary>More add-ons (${more.length})</summary><div>${more.map(f=>fieldHTML(f,T.vals,T.pre)).join('')}</div></details>`:''}${!fs.length?'<p class="full mut" style="margin:0">Nothing to fill in — review the impact and continue.</p>':''}<div class="fm-actions full"><button class="btn p" id="tReview" type="submit" disabled>Review</button>${btn('Cancel',cancelTxn)}<span class="mut small" id="tHint" aria-live="polite"></span></div></form><aside class="impact" id="impact" aria-live="polite" aria-label="Deal impact"></aside></div><div class="mbar" id="mbar" aria-hidden="true"></div>`}
+let liveT=null;
+function bindForm(T){const f=$('#tf');const live=()=>{syncForm(T);const pv=call('preview',T.op,T.ref,paramsOf(T));
+  if(pv.block){T.ctx.block=pv.block;return render({pane:false})}
+  $('#impact').innerHTML=impactHTML(pv);const ok=!pv.error&&pv.changes&&pv.changes.length&&!pv.errors.length;const mb=$('#mbar'),mm=pv.money;if(mb)mb.innerHTML=`<span>${mm&&mm.dueNow?`Due now <b>${money(mm.ccy,mm.dueNow.total)}</b>`:''}${mm&&mm.recurring?` · <b>${money(mm.ccy,mm.recurring.after)}</b>/yr`:''}${pv.approval?' · needs approval':''}${pv.errors&&pv.errors.length?` · <span style="color:var(--bad)">${pv.errors.length} to fix</span>`:''}</span><button type="button" class="btn p sm" tabindex="-1" ${ok?'':'disabled'} data-f="${fn(()=>$('#tf').requestSubmit())}">Review</button>`;$('#tReview').disabled=!ok;$('#tReview').textContent=ok?(pv.approval?'Review — needs approval':'Review'):'Review';$('#tHint').textContent=ok?'':(pv.errors&&pv.errors.length?`${pv.errors.length} item(s) to fix — see the impact panel`:'No changes yet')};
+ f.addEventListener('input',()=>{clearTimeout(liveT);liveT=setTimeout(live,180)});f.addEventListener('change',()=>{clearTimeout(liveT);live()});
+ f.addEventListener('submit',e=>{e.preventDefault();clearTimeout(liveT);live();if(!$('#tReview').disabled)toReview()});live();
+ const first=T.pre.size?f.querySelector('.af input,.af select'):null;if(first&&!S.fromChatFocus)first.focus()}
+function toReview(){const T=S.txn;syncForm(T);const p=paramsOf(T);const q=call('quote',T.op,T.ref,p,T.base);
+ if(q.error){T.err=q.error;if(q.error.code==='CONFLICT'){S.metrics.conflicts++;T.step='review';T.q=null}else return toast(q.error.message);return render({pane:false})}
+ T.q=q;T.p=p;T.err=null;T.idem='idem-'+(window.crypto&&crypto.randomUUID?crypto.randomUUID().slice(0,18):Math.random().toString(36).slice(2,16));T.step='review';Metrics.step(T.m,'review');emit('review',{op:T.op,ref:T.ref,params:q.norm});render({focus:true,pane:false})}
+function errHTML(T){const e=T.err;if(!e)return'';
+ if(e.code==='CONFLICT')return `<div class="blockbox" role="alert"><b>Someone else changed this record while you were working.</b> ${esc(e.message)} Your edits are kept — reload the latest values and review again.<div class="btns" style="margin-top:6px">${btn('Reload latest values',()=>{const x=call('context',T.op,T.ref);if(x.error)return toast(x.error.message);T.ctx=x;T.base=x.v;T.err=null;T.step='edit';T.q=null;render({pane:false});toast('Reloaded — current values updated; your edits are kept')},'p sm')}</div></div>`;
+ if(e.code==='QUOTE_EXPIRED')return `<div class="blockbox" role="alert">${esc(e.message)}<div class="btns" style="margin-top:6px">${btn('Re-quote',toReview,'p sm')}</div></div>`;
+ return `<div class="blockbox" role="alert">${esc(e.message)}${(e.fixes||[]).length?`<div class="btns" style="margin-top:6px">${e.fixes.map(f=>btn(esc(f[0]),()=>openTxn(f[1],f[2],{},{focus:true}),'sm')).join('')}</div>`:''}</div>`}
+function reviewHTML(T){const q=T.q;if(!q)return errHTML(T)+btn('Back to edit',()=>{T.step='edit';T.err=null;render({pane:false})});const danger=M.OPS[T.op].danger&&!q.approval;
+ return `${errHTML(T)}<div class="split"><div><div class="card"><h3>What will change</h3>${changesTable(q.changes)}${(q.notes||[]).map(n=>`<div class="infobox">${esc(n)}</div>`).join('')}</div>
+ ${q.approval?`<div class="apbox"><b>This goes to ${esc(q.approval.approver)} for approval.</b> ${esc(q.approval.why)}. Nothing changes until it is approved; it is then re-validated against the latest subscription, price and permissions.</div>`:''}
+ ${q.confirm&&!q.approval?`<div class="card typed"><label for="typed">Type <code>${esc(q.confirm.typed)}</code> to confirm</label><br><input id="typed" autocomplete="off" aria-describedby="typedHelp"><div id="typedHelp" class="small mut">This changes what the customer has or pays.</div></div>`:''}
+ <div class="btns"><button type="button" class="btn ${danger?'dng':'p'}" id="tGo">${esc(q.approval?'Submit for approval':q.label)}</button>${btn('Back to edit',()=>{T.step='edit';T.err=null;render({pane:false})})}${btn('Cancel',cancelTxn)}</div>
+ <div class="meta">Quote ${esc(q.id)} · valid for <span id="qexp">15:00</span> · record v${q.v} · idempotency key ${esc(T.idem)}</div></div>
+ <aside class="impact" aria-label="Deal impact (frozen quote)">${impactHTML({...q,errors:[]},{frozen:true})}</aside></div>`}
+function bindReview(T){const go=$('#tGo');if(!go||!T.q)return;if(T.err&&T.err.code==='QUOTE_EXPIRED'){go.disabled=true;const el=$('#qexp');if(el)el.textContent='expired';return}go.onclick=doExecute;const tick=()=>{const s=Math.max(0,Math.round((T.q.expires-Date.now())/1000));const el=$('#qexp');if(el)el.textContent=`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;if(!s){clearInterval(qTimer);go.disabled=true;T.err={code:'QUOTE_EXPIRED',message:`Quote ${T.q.id} expired — re-quote to get current pricing.`};render({pane:false})}};tick();qTimer=setInterval(tick,1000)}
+function doExecute(){const T=S.txn,b=$('#tGo');if(T.q.confirm&&!T.q.approval){const t=$('#typed');if(!t||t.value.trim()!==T.q.confirm.typed){toast(`Type ${T.q.confirm.typed} exactly to confirm`);t&&t.focus();return}}
+ b.disabled=true;b.textContent='Working…';const r=call('execute',T.op,T.ref,T.p,{quoteId:T.q.id,idem:T.idem,baseVersion:T.base});
+ if(r.error){T.err=r.error;if(r.error.code==='CONFLICT')S.metrics.conflicts++;return render({pane:false})}finishTxn(T,r)}
+function finishTxn(T,r){T.res=r;T.step='result';T.done=true;Metrics.end(T.m,r.state);
+ S.txns.unshift({key:r.txn,res:r,op:T.op,label:M.OPS[T.op].label,org:T.ctx.c.org,at:new Date().toLocaleTimeString(),T:{op:T.op,ref:T.ref,p:T.p,q:T.q,idem:T.idem,base:T.base}});
+ emit('done',{op:T.op,ref:T.ref,state:r.state,params:T.q.norm,cust:T.ctx.c.zoid});
+ say(`${stPill(r.state)} <b>${esc(T.ctx.c.org)}</b> · ${esc(M.OPS[T.op].label)} — ${esc(r.title)}${r.notDone?`<div class="small mut">${esc(r.notDone)}</div>`:''}`,[btn('Open receipt',()=>show('receipt',{key:r.txn},{focus:true}),'sm')]);
+ setCtx(T.ctx.c.zoid);render({focus:true,pane:false});announce(`${STATE[r.state]?.[0]||'Done'}: ${r.title}`)}
+function replay(t){const r=Store.api.execute(actor(),t.op,t.ref,t.p,{quoteId:t.q.id,idem:t.idem,baseVersion:t.base});trace(`execute(${t.op}, ${t.ref}) replay with ${t.idem}`,r.duplicate?'✓ duplicate detected — original result returned':'executed');if(r.duplicate){S.metrics.dupes++;toast(`Duplicate detected — returned ${r.txn}; nothing ran twice.`)}}
+function resultHTML(r,t){const s=STATE[r.state]||['Done','ok','✓'];const nb=r.cust?(call('nextBest',r.cust)||[]).filter(x=>x.ok).slice(0,2):[];
+ return `<div class="card res ${r.state}"><div class="res-head"><span class="ico" aria-hidden="true">${s[2]}</span><div>${stPill(r.state)}${r.duplicate?' <span class="pill p-info">Duplicate request — original result returned</span>':''}<h3>${esc(r.title)}</h3><div class="small mut">${esc(r.org||'')}</div></div></div>
+ <ol class="life" aria-label="Lifecycle">${(r.stages||[]).map(g=>`<li class="${g.st}">${{done:'✓',wait:'⏳',todo:'○',skip:'–',fail:'✗'}[g.st]} ${esc(g.label)}<span class="sr"> (${g.st})</span></li>`).join('')}</ol>
+ ${r.notDone?`<div class="notdone"><b>Not done yet:</b> ${esc(r.notDone)}</div>`:''}${(r.rows||[]).map(([a,b])=>row(esc(a),esc(b))).join('')}
+ <div class="btns" style="margin-top:10px">${(r.next||[]).map(n=>btn(esc(n[0]),()=>openTxn(n[1],n[2],n[1]==='settle'?{method:'link'}:{},{src:'next',focus:true}),'p')).join('')}${r.links&&r.links.copy?`<button type="button" class="btn" data-f="${fn(b=>{b.textContent='Copied (demo link)'})}">${esc(r.links.copy)}</button>`:''}${r.state==='pending_approval'?btn('View approval request',()=>show('approvals',{},{focus:true})):''}${r.cust?btn('Customer 360',()=>openC360(r.cust,{focus:true}))+btn('Complete history',()=>openDrawer(r.cust)):''}${btn('Back to Today',()=>show('home',{},{focus:true}))}</div>
+ ${nb.length?`<div class="card" style="margin:12px 0 0"><h3>Next for ${esc(r.org)}</h3>${nb.map(x=>`<div class="row"><span>${esc(x.title)}<br><span class="small">${esc(x.detail)}</span></span><span>${btn(esc(x.cta),()=>runNba(x),'sm')}</span></div>`).join('')}</div>`:''}
+ <div class="meta">${esc(r.txn||'—')} · quote ${esc(r.quote||'—')} · idempotency ${esc(r.idem||'—')} · recorded in the customer history${t&&r.txn?' '+btn('Replay request (idempotency check)',()=>replay(t),'sm ghost'):''}</div></div>`}
+
+/* ---------- navigation helpers ---------- */
+function openC360(z,o={}){setCtx(z);emit('c360',{zoid:z});show('c360',{z,hl:o.hl||null},{focus:o.focus})}
+function pickCustomer(op){show('pick',{op},{focus:true})}
+const opLabel=(op,l)=>({pause:l.st==='Paused'?'Resume':'Pause',reactivate:l.st==='Cancelling'?'Undo cancellation':'Reactivate',change:'Change users / plan',renew:'Renew',convert:'Convert trial'}[op]||M.OPS[op].label);
+function nbaList(items,max=8){return items.length?`<ol class="nba">${items.slice(0,max).map(x=>`<li><div class="nb-main"><span class="tagx t-${slug(x.tag)}">${esc(x.tag)}</span><b>${esc(x.title)}</b><div class="mut small">${esc(x.detail)}</div></div><div class="nb-act">${x.val?`<span class="val">${money(x.val.ccy,x.val.amt)}<small>/yr</small></span>`:''}${x.ok?btn(esc(x.cta),()=>runNba(x),'p sm'):dis(esc(x.cta),x.why,'sm')}${btn('Account',()=>openC360(x.cust,{focus:true}),'sm ghost',`aria-label="Open ${esc(x.org)}"`)}</div></li>`).join('')}</ol>`:'<p class="mut">Nothing needs attention right now.</p>'}
+const tile=(label,big,sub,f)=>`<button type="button" class="tile" data-f="${fn(f)}"><span class="l">${esc(label)}</span><b>${big}</b><span>${sub}</span></button>`;
+
+/* ---------- views ---------- */
+const VIEWS={
+home(){const h=call('home'),a=actor(),r=S.role;let x='';
+ x+=`<div class="tiles">${tile('Needs attention',h.nba.length,'ranked below',()=>document.getElementById('nbaH').scrollIntoView({behavior:'smooth'}))}${tile('Renewals ≤ 30 days',h.ren.n,`${usd(h.ren.usd)} USD eq. · ${h.ren.blocked} blocked`,()=>show('renewals',{days:30},{focus:true}))}${tile(r==='admin'?'Approvals to decide':'My pending approvals',h.appr,r==='admin'?'requests from others':'awaiting a decision',()=>show('approvals',{},{focus:true}))}${tile('Billing issues',h.bill,'overdue + failed payments',()=>show('recovery',{},{focus:true}))}${a.partners?tile('Partner margin / yr',usd(h.marginUSD),`${h.customers} customers · ARR ${usd(h.arrUSD)}`,()=>show('portfolio',{},{focus:true})):''}</div>`;
+ if(r==='sales')x+=`<div class="card"><h3>Quick actions</h3><div class="qa">${btn('<b>Find a customer</b><small>Account, subscriptions, history</small>',()=>{qi$.focus()})}${btn('<b>Close a deal</b><small>Estimate or PO for a new product</small>',()=>pickCustomer('buy'))}${btn('<b>Change a license</b><small>Users, plan, add-ons, discount</small>',()=>pickCustomer('change'))}${btn('<b>Manage renewals</b><small>Due, blocked and at-risk</small>',()=>show('renewals',{days:30},{focus:true}))}</div></div>`;
+ if(r==='partner')x+=`<div class="card"><h3>Quick actions</h3><div class="qa">${btn('<b>Sell to a customer</b><small>Estimate or PO at partner price</small>',()=>pickCustomer('buy'))}${btn('<b>Change a subscription</b><small>Users, plan, add-ons</small>',()=>pickCustomer('change'))}${btn('<b>Renewals</b><small>Due in 30 days</small>',()=>show('renewals',{days:30},{focus:true}))}${btn('<b>Collect payment</b><small>Links and POs</small>',()=>show('recovery',{},{focus:true}))}</div></div>`;
+ x+=`<div class="card"><h3 id="nbaH">Next best actions <span class="mut small" style="text-transform:none;letter-spacing:0">ranked by urgency and value · ${a.partners?'your partner portfolio':r==='admin'?'all customers':'your book'}</span></h3>${nbaList(h.nba)}</div>`;
+ if(r==='pam'){const P=call('portfolio');x+=P.map(g=>`<div class="card"><h3>${esc(g.name)} <span class="mut small" style="text-transform:none">${esc(g.code)} · ${esc(g.agreement)}</span></h3>${portTable(g)}</div>`).join('')}
+ if(r==='admin'){const L=call('approvals').filter(z=>z.st==='Pending').slice(0,3),A=call('audit');x+=`<div class="card"><h3>Approval queue</h3>${L.map(z=>row(`<b>${z.id}</b> · ${esc(z.label)} · ${esc(z.org)}<br><span class="small">${esc(z.summary)}</span>`,`${pill(z.st)} ${btn('Review',()=>show('approvals',{},{focus:true}),'sm')}`)).join('')||'<p class="mut">Empty.</p>'}</div><div class="card"><h3>Audit stream</h3>${A.map(e=>row(`${e.d} · <b>${esc(e.org)}</b> · ${esc(e.t)}<br><span class="small">${esc(e.det)}</span>`,`<span class="small">${esc(e.by)}</span>`)).join('')}</div>`}
+ if(S.txns.length)x+=`<div class="card"><h3>This session</h3>${S.txns.slice(0,6).map(t=>row(`${esc(t.org)} · ${esc(t.label)}<br><span class="small">${esc(t.res.title)}</span>`,`${stPill(t.res.state)} ${btn('Receipt',()=>show('receipt',{key:t.key},{focus:true}),'sm ghost')}`)).join('')}</div>`;
+ const greet={sales:'Today',pam:'Partner portfolio — today',partner:`${a.title} · Partner Store`,admin:'Store operations'}[r];
+ return{title:greet,crumb:`${esc(a.name)} · ${esc(M.ROLE_LABEL[r])}`,html:x}},
+
+pick({op}){const dir=call('directory');const lv=M.OPS[op].level;
+ const html=`<div class="card"><label for="pickq" class="small mut">Filter customers</label><input id="pickq" class="" style="width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;margin:4px 0 10px" placeholder="Type a name or email"><div id="pickl"></div></div>`;
+ return{title:`${M.OPS[op].label} — choose a customer`,html,after(){const draw=()=>{const f=$('#pickq').value.toLowerCase();$('#pickl').innerHTML=dir.filter(c=>!f||c.org.toLowerCase().includes(f)||c.email.includes(f)).map(c=>`<div class="row"><span><b>${esc(c.org)}</b><br><span class="small">${esc(c.email)} · ${c.lics.map(l=>esc(l.name)+' '+l.st).join(', ')}</span></span><span class="btns">${lv==='cust'?btn('Select',()=>openTxn(op,c.zoid,{},{focus:true}),'sm p'):c.lics.filter(l=>!['Cancelled'].includes(l.st)).map(l=>btn(esc(l.name),()=>openTxn(op,l.id,{},{focus:true}),'sm')).join('')}</span></div>`).join('')||'<p class="mut">No matches in your accounts.</p>'};$('#pickq').oninput=draw;draw();$('#pickq').focus()}}},
+
+c360({z,hl}){const d=call('cust360',z);if(d.error)return{title:'Not found',html:`<p>${esc(d.error.message)}</p>`};const c=d.c;const ca=call('actionsFor',z,null);
+ const cbtn=ca.filter(a=>!a.na||!a.ok).map(a=>a.ok?btn(esc(a.label),()=>openTxn(a.op,z,a.op==='settle'?{method:'link'}:{},{focus:true}),'sm'):a.na?'':dis(esc(a.label),a.why,'sm')).join('');
+ let x=`<div class="card"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:flex-start"><div><div style="font-size:18px;font-weight:700">${esc(c.org)} ${pill(c.health)}</div><div class="small mut">${esc(c.zoid)} · ${esc(c.email)} · CRM ${esc(c.crm)} · owner ${esc(c.owner)}</div></div><div class="btns">${cbtn}${btn('Complete history',()=>openDrawer(z),'sm')}</div></div>
+  ${row('Partner',c.partnerInfo?`${esc(c.partnerInfo.name)} · ${esc(c.partnerInfo.model)} · ${esc(c.partnerInfo.agreement)} · billed to ${esc(c.billTo)}`:'Direct customer')}${row('Billing address · tax',`${esc([c.addr.street,c.addr.city,c.addr.state,c.addr.country].join(', '))} · ${esc(c.tax)}`)}${row('ARR (billed, USD eq.)',usd(c.arrUSD))}</div>`;
+ x+=`<h3 class="mut small" style="text-transform:uppercase;letter-spacing:.5px;margin:4px 0 8px">Subscriptions</h3><div class="grid2">${d.lics.map(l=>licCard(l,call('actionsFor',z,l.id),hl)).join('')}</div>`;
+ const nb=call('nextBest',z);if(nb.length)x+=`<div class="card" style="margin-top:12px"><h3>Next best actions</h3>${nbaList(nb)}</div>`;
+ const ests=d.est.filter(e=>e.st!=='Converted'),inv=d.inv.filter(i=>i.st!=='Paid');
+ if(ests.length||inv.length||d.appr.length)x+=`<div class="card"><h3>Open items</h3>${ests.map(e=>{const A=call('actionsFor',z,e.n,'est');return row(`${e.n} · ${esc(M.CAT[e.p].name)} ${esc(e.plan)} · ${e.users} users · ${money(e.ccy,e.amt)} ${pill(e.st)}`,A.filter(a=>a.ok).map(a=>btn(esc(a.label.replace(' from estimate','')),()=>openTxn(a.op,e.n,{},{focus:true}),a.op==='enableEst'?'p sm':'sm')).join(' '))}).join('')}${inv.map(i=>row(`${i.n} · ${esc(i.lic)} · ${money(i.ccy,i.amt)} ${pill(i.st)}<span class="small mut"> due ${i.due}</span>`,['Open','Overdue'].includes(i.st)&&canDo('settle')?btn('Collect',()=>openTxn('settle',z,{inv:i.n,method:'link'},{focus:true}),'sm'):'')).join('')}${d.appr.map(a=>row(`${a.id} · ${esc(a.label)} · ${esc(a.summary)}`,`${pill('Pending')} <span class="small mut">needs ${esc(a.approver)}</span>`)).join('')}</div>`;
+ x+=`<div class="card"><h3>Recent activity</h3>${c.hist.map(e=>row(`${e.d} · ${esc(e.t)}<br><span class="small">${esc(e.det)}</span>`,`<span class="small">${esc(e.by)}</span>`)).join('')}<div class="btns" style="margin-top:6px">${btn('Open complete history',()=>openDrawer(z),'sm')}</div></div>`;
+ return{title:c.org,crumb:'Customer 360',html:x,after(){if(hl){const el=document.querySelector(`[data-lic="${CSS.escape(hl)}"]`);if(el){el.style.outline='3px solid var(--focus)';el.scrollIntoView({block:'center'})}}}}},
+
+receipt({key}){const t=S.txns.find(z=>z.key===key);if(!t)return{title:'Receipt',html:'<p class="mut">Not found in this session.</p>'};return{title:`${t.label} · ${t.org}`,crumb:'Receipt · '+esc(t.at),html:resultHTML(t.res,t.T)}},
+
+txn(a){const T=S.txn;if(!T||T.op!==a.op||T.ref!==a.ref)return{title:'Transaction closed',html:'<p class="mut">This transaction is no longer open.</p>'+btn('Back to Today',()=>show('home'))};
+ const x=T.ctx,O=M.OPS[T.op],steps=['Current & change','Review & confirm','Result'],idx={edit:0,review:1,result:2}[T.step];
+ const stepper=`<ol class="stepper" aria-label="Transaction steps">${steps.map((s,i)=>`<li class="${i<idx?'done':''}" ${i===idx?'aria-current="step"':''}>${s}</li>`).join('')}</ol>`;
+ const tgt=x.level==='lic'?`${x.t.name} · ${x.t.id}`:x.level==='est'?x.t.n:'Account';
+ const body=T.step==='edit'?editHTML(T):T.step==='review'?reviewHTML(T):resultHTML(T.res,T.res&&{op:T.op,ref:T.ref,p:T.p,q:T.q,idem:T.idem,base:T.base});
+ return{title:`${O.label} · ${x.c.org}`,crumb:`${esc(x.c.org)} › ${esc(tgt)}`,html:stepper+body,after(){if(T.step==='edit'&&!x.block)bindForm(T);if(T.step==='review')bindReview(T)}}},
+
+renewals({days=30}){const L=call('renewals',days);S.rsel=S.rsel||new Set();const elig=L.filter(r=>!r.block);
+ const tot=L.reduce((t,r)=>t+r.amt*(r.ccy==='INR'?1/83:1),0);
+ const html=`<div class="btns" role="group" aria-label="Window" style="margin-bottom:10px">${[30,60,90].map(d=>`<button type="button" class="btn sm" aria-pressed="${d===days}" data-f="${fn(()=>show('renewals',{days:d},{push:false}))}">${d} days</button>`).join('')}<span class="mut small">${L.length} subscriptions · ${usd(tot)} USD eq. · ${L.length-elig.length} blocked</span></div>
+ <div class="card"><table class="tbl resp"><thead><tr><th><span class="sr">Select</span></th><th>Customer · subscription</th><th>Renews</th><th class="r">Recurring / yr</th><th>Status</th><th>Action</th></tr></thead><tbody>${L.map(r=>`<tr data-lic="${esc(r.lic)}"><td data-l="Select">${r.block?'':`<input type="checkbox" aria-label="Select ${esc(r.org)} ${esc(r.name)}" data-sel="${esc(r.lic)}" ${S.rsel.has(r.lic)?'checked':''}>`}</td><td data-l="Customer"><b>${esc(r.org)}</b><br><span class="small mut">${esc(r.name)} ${esc(r.plan)} · ${r.users} users${r.partner?' · '+esc(r.partner)+(r.billTo==='partner'?' (billed to partner)':''):''}</span></td><td data-l="Renews" class="num">${r.exp}<br><span class="small mut">${r.days} days · ${r.auto?'auto-renew':'manual'}</span></td><td data-l="Recurring" class="r num">${money(r.ccy,r.amt)}${r.margin?`<br><span class="small mut">margin ${money(r.ccy,r.margin)}</span>`:''}</td><td data-l="Status">${pill(r.st)}${r.block?`<div class="small" style="color:var(--bad)">${esc(r.block)}</div>`:''}</td><td data-l="Action">${r.block?r.fixes.map(f=>btn(esc(f[0]),()=>openTxn(f[1],f[2],f[1]==='settle'?{method:'link'}:{},{focus:true}),'sm')).join(' '):btn('Renew',()=>openTxn('renew',r.lic,{},{focus:true}),'sm p')}</td></tr>`).join('')||'<tr><td colspan="6" class="mut">Nothing renews in this window.</td></tr>'}</tbody></table>
+ <div class="btns" style="margin-top:10px">${btn(`<span>Send renewal links for selected (<span id="rseln">${[...S.rsel].filter(x=>elig.some(r=>r.lic===x)).length}</span>)</span>`,()=>{const sel=[...S.rsel].filter(x=>elig.some(r=>r.lic===x));if(!sel.length)return toast('Select at least one eligible subscription');show('bulk',{lics:sel},{focus:true})},'p')}<span class="small mut">Multi-customer: each renewal is quoted, executed and recorded individually.</span></div></div>`;
+ return{title:`Renewals — next ${days} days`,crumb:esc(M.ROLE_LABEL[S.role])+' · '+(actor().partners?'partner portfolio':'all accounts in scope'),html,after(){document.querySelectorAll('[data-sel]').forEach(cb=>cb.onchange=()=>{cb.checked?S.rsel.add(cb.dataset.sel):S.rsel.delete(cb.dataset.sel);$('#rseln').textContent=[...S.rsel].filter(x=>elig.some(r=>r.lic===x)).length})}}},
+
+bulk({lics}){const st=S.bulk&&S.bulk.key===lics.join()?S.bulk:(S.bulk={key:lics.join(),items:lics.map(id=>({id,pv:call('preview','renew',id,{term:1,pay:'link'}),ctx:call('context','renew',id)})),done:false});
+ const tot={};st.items.forEach(i=>{if(i.pv.money){const c=i.pv.money.ccy;tot[c]=(tot[c]||0)+i.pv.money.dueNow.total}});
+ const html=`<div class="card"><h3>${st.done?'Results':'Review — renewal payment links'}</h3><table class="tbl resp"><thead><tr><th>Customer · subscription</th><th class="r">Due on payment</th><th>New recurring date</th><th>${st.done?'Result':'Check'}</th></tr></thead><tbody>${st.items.map(i=>`<tr><td data-l="Customer"><b>${esc(i.ctx.c?i.ctx.c.org:'')}</b><br><span class="small mut">${esc(i.ctx.t?i.ctx.t.name+' · '+i.id:i.id)}</span></td><td data-l="Due" class="r num">${i.pv.money?money(i.pv.money.ccy,i.pv.money.dueNow.total):'—'}</td><td data-l="New date">${i.pv.changes?esc(i.pv.changes[0][2]):'—'}</td><td data-l="Result">${st.done?(i.res?(i.res.error?`<span class="pill p-bad">${esc(i.res.error.code)}</span> <span class="small">${esc(i.res.error.message)}</span>`:stPill(i.res.state)+` <span class="small mut">${esc(i.res.txn)}</span>`):''):(i.pv.block?`<span class="pill p-bad">Blocked</span> <span class="small">${esc(i.pv.block.reason)}</span>`:i.pv.errors&&i.pv.errors.length?esc(i.pv.errors.join(' ')):'<span class="pill p-ok">Ready</span>')}</td></tr>`).join('')}</tbody></table>
+ <p class="small mut">Total due on payment: ${Object.entries(tot).map(([c,v])=>money(c,v)).join(' + ')||'—'} · Payment links go to each customer’s invoice recipients. Subscriptions renew only when each invoice is paid.</p>
+ <div class="btns">${st.done?btn('Back to renewals',()=>{S.bulk=null;S.rsel=new Set();show('renewals',{days:30},{focus:true})},'p'):btn(`Create ${st.items.filter(i=>!i.pv.block&&!(i.pv.errors||[]).length).length} renewals & send links`,()=>{st.items.forEach(i=>{if(i.pv.block||(i.pv.errors||[]).length)return;const q=call('quote','renew',i.id,{term:1,pay:'link'},i.ctx.v);if(q.error){i.res=q;return}const r=call('execute','renew',i.id,{term:1,pay:'link'},{quoteId:q.id,idem:'bulk-'+i.id+'-'+q.id,baseVersion:q.v});i.res=r;if(!r.error){S.txns.unshift({key:r.txn,res:r,op:'renew',label:'Renew',org:i.ctx.c.org,at:new Date().toLocaleTimeString(),T:null});emit('done',{op:'renew',ref:i.id,state:r.state,params:{term:1,pay:'link'},cust:i.ctx.c.zoid})}});st.done=true;const ok=st.items.filter(i=>i.res&&!i.res.error).length;say(`${stPill('awaiting_payment')} Bulk renewal: ${ok} renewal order(s) created and payment links sent. None are renewed until paid.`);render({focus:true,pane:false})},'p')+btn('Cancel',goBack)}</div></div>`;
+ return{title:st.done?'Bulk renewal — results':'Bulk renewal — review',html}},
+
+recovery(){const R=call('recovery'),stl=canDo('extend');
+ const html=`<div class="card"><h3>Failed payments</h3>${R.failed.map(p=>row(`<b>${esc(p.org)}</b> · ${p.id} · ${money(p.ccy,p.amt)}<br><span class="small">${esc(p.why)} · ${p.d} · ${esc(p.inv)}</span>`,`${pill(p.st)} ${p.st==='Failed'?btn('Send payment link',()=>openTxn('settle',p.cust,{inv:p.inv,method:'link'},{focus:true}),'p sm'):''}`)).join('')||'<p class="mut">None.</p>'}</div>
+ <div class="card"><h3>Overdue invoices</h3>${R.overdue.map(i=>row(`<b>${esc(i.org)}</b> · ${i.n} · ${money(i.ccy,i.amt)}<br><span class="small">${i.days} days overdue · ${esc(i.lic)}${i.expPay?' · expected '+i.expPay:''}${i.linkSent?' · link sent '+i.linkSent:''}</span>`,`${btn('Collect',()=>openTxn('settle',i.cust,{inv:i.n,method:'link'},{focus:true}),'p sm')} ${stl?btn('Extend date',()=>openTxn('extend',i.cust,{inv:i.n},{focus:true}),'sm'):''}`)).join('')||'<p class="mut">None.</p>'}</div>
+ <div class="card"><h3>Awaiting payment</h3>${[...R.po,...R.links.filter(i=>i.st!=='Overdue')].map(i=>row(`<b>${esc(i.org)}</b> · ${i.n} · ${money(i.ccy,i.amt)}<br><span class="small">${i.st==='PO received'?'PO '+esc(i.po)+' recorded — still receivable':'Payment link sent '+i.linkSent}</span>`,pill(i.st))).join('')||'<p class="mut">None.</p>'}</div>`;
+ return{title:'Billing recovery',crumb:'Failed payments, overdue invoices and money in flight',html}},
+
+approvals(){const L=call('approvals'),me=actor().name,adm=S.role==='admin';const pend=L.filter(a=>a.st==='Pending'),done=L.filter(a=>a.st!=='Pending');
+ const card=a=>`<div class="card" id="apr-${esc(a.id)}"><h3><span style="color:var(--tx)">${esc(a.id)} · ${esc(a.label)}</span>${pill(a.st)}</h3>${row('Customer · target',`${esc(a.org)} · ${esc(a.ref)}`)}${row('Change',esc(a.summary))}${a.snap?row('At request time',`due now ${money(a.snap.ccy,a.snap.due)}${a.snap.rec!=null?` · recurring ${money(a.snap.ccy,a.snap.rec)}/yr`:''}`):''}${row('Requested by',`${esc(a.requester.name)} (${esc(M.ROLE_LABEL[a.requester.role])}) · ${a.created}`)}${row('Why approval',esc(a.why))}${row('Expires',a.expires)}${row('Snapshot',`record v${a.baseVersion} · quote ${esc(a.quote)}`)}${a.note?row(a.st==='Rejected'?'Rejection reason':'Note',esc(a.note)):''}${a.decidedBy?row('Decided by',esc(a.decidedBy)):''}
+  ${a.st==='Pending'?(adm?(a.requester.name===me?'<div class="note">Separation of duties: you raised this request, so another Store Admin must decide.</div>':`<div class="btns" style="margin-top:8px">${btn('Approve & run',()=>decide(a,true),'p')}${btn('Reject…',(b)=>{const w=b.closest('.card').querySelector('.rej');w.hidden=false;w.querySelector('textarea').focus()},'')}</div><div class="rej" hidden><label class="small mut" for="rj-${esc(a.id)}">Reason (the requester sees this)</label><textarea id="rj-${esc(a.id)}" rows="2" style="width:100%;padding:7px;border:1px solid var(--line);border-radius:8px;font:inherit"></textarea>${btn('Reject request',(b)=>decide(a,false,b.closest('.rej').querySelector('textarea').value),'dng sm')}</div><div class="small mut" style="margin-top:6px">On approval the request is re-validated: record version, eligibility, permissions and price must still match.</div>`):`<div class="small mut">Waiting for ${esc(a.approver)}. Switch to Store Admin to decide.</div>`):''}</div>`;
+ return{title:adm?'Approval queue':'My approval requests',crumb:adm?'Requests from Sales, PAM and Partner users':'Requests you raised',html:(pend.length?pend.map(card).join(''):'<p class="mut">Nothing pending.</p>')+(done.length?`<details class="more"><summary>Decided, expired and stale (${done.length})</summary>${done.map(card).join('')}</details>`:'')}},
+
+portfolio(){const P=call('portfolio');return{title:'Partner portfolio',crumb:actor().partners?'Partners you manage':'All partners and direct customers',html:P.map(g=>`<div class="card"><h3>${esc(g.name)} <span class="mut small" style="text-transform:none">${esc(g.code==='direct'?'':g.code+' · '+g.agreement)}</span></h3>${portTable(g)}</div>`).join('')}},
+
+diagnose({z,lic}){const d=call('cust360',z);if(d.error)return{title:'Not found',html:esc(d.error.message)};emit('diagnose',{zoid:z});const groups={};
+ for(const l of d.lics.filter(l=>!lic||l.id===lic)){for(const a of call('actionsFor',z,l.id)){if(a.ok||a.na)continue;const k=a.why;(groups[k]=groups[k]||{why:a.why,ops:[],fixes:a.fixes,lic:l}).ops.push(a.label)}}
+ const G=Object.values(groups);const cust=d.c;
+ const html=`<div class="card"><h3>${G.length?'Blocked':'Nothing blocked'}</h3>${G.map(g=>`<div style="padding:8px 0;border-bottom:1px solid var(--line2)"><b>${esc(g.lic.name)} (${esc(g.lic.id)})</b> — can’t ${esc(g.ops.map(o=>o.toLowerCase()).join(', '))}<div class="blockbox" style="margin:6px 0">${esc(g.why)}</div><div class="btns">${g.fixes.map(f=>btn(esc(f[0]),()=>openTxn(f[1],f[2],f[1]==='settle'?{method:'link'}:{},{focus:true}),'p sm')).join('')}</div></div>`).join('')||'<p class="mut">Every action available to your role is open for this customer.</p>'}</div>
+  <div class="card"><h3>Money and approvals in flight</h3>${d.inv.filter(i=>i.st!=='Paid').map(i=>row(`${i.n} · ${esc(i.lic)}`,`${money(i.ccy,i.amt)} ${pill(i.st)}`)).join('')}${d.pay.filter(p=>p.st==='Failed').map(p=>row(p.id,`${esc(p.why)} ${pill(p.st)}`)).join('')}${d.appr.map(a=>row(a.id+' · '+esc(a.label),pill('Pending'))).join('')||(!d.inv.some(i=>i.st!=='Paid')?'<p class="mut">Nothing in flight.</p>':'')}</div>`;
+ return{title:`Why is it blocked? · ${cust.org}`,crumb:'Eligibility comes from the Store, not the agent',html}},
+
+metrics(){const T=S.metrics.tx,I=S.metrics.intents,fin=T.filter(t=>t.out&&!['abandoned','cancelled'].includes(t.out)),med=a=>{if(!a.length)return 0;const s=[...a].sort((x,y)=>x-y);return s[Math.floor(s.length/2)]};
+ const secs=fin.map(t=>(t.t1-t.t0)/1000),clicks=fin.map(t=>t.clicks),pct=(n,d)=>d?Math.round(n/d*100)+'%':'—';
+ const html=`<div class="infobox">Session-local instrumentation. These are measurements of <b>this browser session only</b> — not user-research results. The event schema below is the proposed production telemetry.</div>
+ <div class="tiles">${tile('Transactions started',T.length,`${fin.length} submitted · ${T.filter(t=>t.out==='abandoned'||t.out==='cancelled').length} abandoned/cancelled`,()=>0)}${tile('Median time to submit',fin.length?med(secs).toFixed(0)+' s':'—','from open to execute',()=>0)}${tile('Median clicks',fin.length?med(clicks):'—','inside the transaction',()=>0)}${tile('Intent resolved directly',pct(I.direct,I.total),`${I.total} requests · ${I.context} via context · ${I.clarified} clarified · ${I.unknown+I.notFound} unresolved`,()=>0)}${tile('Blocked encounters',S.metrics.blocked,`${S.metrics.conflicts} conflicts · ${S.metrics.dupes} duplicate replays caught`,()=>0)}</div>
+ <div class="card"><h3>Transactions</h3><table class="tbl resp"><thead><tr><th>#</th><th>Workflow</th><th>Customer</th><th>Source</th><th>Outcome</th><th class="r">Seconds</th><th class="r">Clicks</th></tr></thead><tbody>${T.map(t=>`<tr><td data-l="#">${t.id}</td><td data-l="Workflow">${esc(M.OPS[t.op].label)}</td><td data-l="Customer">${esc(t.org)}</td><td data-l="Source">${esc(t.src)}</td><td data-l="Outcome">${t.out?(STATE[t.out]?stPill(t.out):esc(t.out)):'<span class="mut">open</span>'}</td><td data-l="Seconds" class="r">${t.t1?((t.t1-t.t0)/1000).toFixed(0):'—'}</td><td data-l="Clicks" class="r">${t.clicks}</td></tr>`).join('')||'<tr><td colspan="7" class="mut">No transactions yet.</td></tr>'}</tbody></table><div class="btns" style="margin-top:8px">${btn('Export JSON',()=>download('store-agent-session-metrics.json',{metrics:S.metrics,txns:S.txns.map(t=>({key:t.key,op:t.op,org:t.org,state:t.res.state}))}),'sm')}</div></div>
+ <div class="card"><h3>Proposed production event schema</h3><table class="tbl"><tbody>${[['intent.parsed','intent, workflow, resolved_by, confidence, entities (no free text), latency'],['intent.clarified','ask (customer|license|estimate), options shown, option chosen'],['txn.opened','op, target type, source (chat|nba|search|ui), role, partner scope'],['txn.previewed','op, error codes, approval rule, price source'],['txn.reviewed','quote id, approval required, time since open'],['txn.executed','state, txn id, idempotency key, duplicate flag, approval id'],['txn.failed','code (CONFLICT|QUOTE_EXPIRED|INELIGIBLE|FORBIDDEN), recovered?'],['approval.decided','outcome, latency, revalidation result (ok|stale|expired)'],['nba.shown/acted','rank, tag, value, acted within session?']].map(r=>`<tr><td><code>${r[0]}</code></td><td class="small">${r[1]}</td></tr>`).join('')}</tbody></table></div>`;
+ return{title:'Session metrics',crumb:'Evaluation',html}},
+
+test(){const R=S.test.results;const html=`<div class="infobox">Facilitated task-based test. Start a scenario, hand the keyboard to the participant, and rate the outcome. Each start resets demo data and switches to the scenario’s role. Time and clicks are measured automatically; completion is detected from Store events. <b>No observed sessions are included by default.</b></div>
+ <div class="card"><h3>Scenarios</h3>${SCEN.map(s=>row(`<b>${s.id} · ${esc(s.title)}</b> <span class="pill p-mut">${esc(M.ROLE_LABEL[s.role])}</span><br><span class="small">${esc(s.task)}</span>`,btn('Start',()=>startScenario(s.id),'sm p'))).join('')}</div>
+ <div class="card"><h3>Results</h3><table class="tbl resp"><thead><tr><th>Scenario</th><th>Role</th><th>Completed</th><th class="r">Seconds</th><th class="r">Clicks</th><th>Rating</th></tr></thead><tbody>${R.map(r=>`<tr><td data-l="Scenario">${r.id} · ${esc(r.title)}</td><td data-l="Role">${esc(M.ROLE_LABEL[r.role])}</td><td data-l="Completed">${r.completed?'Yes':'No'}</td><td data-l="Seconds" class="r">${r.secs}</td><td data-l="Clicks" class="r">${r.clicks}</td><td data-l="Rating">${esc(r.rating)}</td></tr>`).join('')||'<tr><td colspan="6" class="mut">No sessions recorded.</td></tr>'}</tbody></table>
+ <p class="small mut">Unassisted success = Easy ÷ attempts. Target for the next iteration: ≥ 90% across 5–8 Sales/AM and 3–5 PAM participants (proposed, not observed).</p>${R.length?`<p><b>Unassisted success: ${Math.round(R.filter(r=>r.rating==='Easy').length/R.length*100)}%</b> (${R.length} attempt${R.length>1?'s':''})</p>`:''}<div class="btns">${btn('Export results (JSON)',()=>download('store-agent-usability-results.json',R),'sm')}</div></div>`;
+ return{title:'Usability test runner',crumb:'Evaluation',html}},
+
+about(){const html=`<div class="card"><h3>Architecture in this file</h3><div class="arch">
+ <div><b>Layer 1 · Agent</b>Rule-based intent parser and resolver (LLM stand-in). Emits structured intent JSON (see the trace), resolves customers and licenses through the scoped directory, pre-fills forms, asks when ambiguous, never silently falls back to the customer in context when another name is mentioned.</div>
+ <div><b>Layer 2 · UI</b>Chat for intent; one transaction workspace for current state → change with live impact → frozen-quote review → result. Renders only what the Store API returns.</div>
+ <div><b>Layer 0 · Mock Store API</b>Server-side authorization and partner scope (out-of-scope = not found), single policy engine, pricing and tax, quotes with 15-minute expiry, versioned records, idempotent execution, approvals stored as data with re-validation and expiry, payments and invoices, append-only history and audit.</div></div></div>
+ <div class="grid2"><div class="card"><h3>Simulated in this prototype</h3><ul class="small"><li>All customers, prices, taxes, partner margins, FX</li><li>Intent understanding (regex + entity rules, not an LLM)</li><li>Payment gateway (cards ending 0007 decline)</li><li>External events via “More → Demo” (customer approval, payment, concurrent edit)</li><li>Email/link delivery (“Copied (demo link)”)</li></ul></div>
+ <div class="card"><h3>Proposed for production</h3><ul class="small"><li>LLM tool-calling orchestrator emitting the same intent schema</li><li>Store estimate/cart APIs as the only price source</li><li>Server-enforced RBAC + partner scope on every call</li><li>Persisted approval intents with versioning, expiry, SoD</li><li>Idempotency keys and optimistic concurrency on all writes</li><li>Event telemetry (see Session metrics) and offline eval set</li></ul></div></div>
+ <div class="card"><h3>Policy values used</h3>${Object.entries(M.POLICY).map(([k,v])=>row(esc(k),esc(v))).join('')}</div>
+ <div class="card"><h3>Unverified assumptions — confirm with Store / Finance before relying on them</h3><ol class="small">${M.ASSUMPTIONS.map(a=>`<li>${esc(a)}</li>`).join('')}</ol></div>`;
+ return{title:'About this prototype',crumb:'What is real, simulated, proposed or assumed',html}}};
+function portTable(g){return `<table class="tbl resp"><thead><tr><th>Customer</th><th class="r">ARR (USD eq.)</th><th class="r">Partner margin / yr</th><th>Next recurring</th><th>Health</th><th></th></tr></thead><tbody>${g.rows.map(r=>`<tr><td data-l="Customer"><b>${esc(r.org)}</b>${r.billTo==='partner'?'<br><span class="small mut">billed to partner</span>':''}</td><td data-l="ARR" class="r num">${usd(r.arrUSD)}</td><td data-l="Margin" class="r num">${g.code==='direct'?'—':usd(r.marginUSD)}</td><td data-l="Next">${r.next!=null?r.next+' days':'—'}</td><td data-l="Health">${pill(r.health)}</td><td>${btn('Open',()=>openC360(r.zoid,{focus:true}),'sm')}</td></tr>`).join('')}</tbody></table>`}
+function licCard(l,acts,hl){const pref={Overdue:[],Trial:['convert'],Cancelling:['reactivate'],Cancelled:['reactivate'],Paused:['pause','renew'],Active:['change','renew','pause']}[l.st]||['change'];
+ const ch=acts.find(a=>a.op==='change');let prim=[];
+ if(ch&&!ch.ok&&ch.fixes.length&&!ch.na&&['Overdue'].includes(l.st))prim=ch.fixes.map((f,i)=>btn(esc(f[0]),()=>openTxn(f[1],f[2],f[1]==='settle'?{method:'link'}:{},{focus:true}),i?'sm':'p sm'));
+ for(const op of pref){const a=acts.find(z=>z.op===op);if(a&&a.ok&&prim.length<3)prim.push(btn(esc(opLabel(op,l)),()=>openTxn(op,l.id,{},{focus:true}),prim.length?'sm':'p sm'))}
+ const rest=acts.filter(a=>!(pref.includes(a.op)&&a.ok)&&!a.na);
+ const note=l.st==='Overdue'&&l.overdue?`<div class="blockbox">${esc(l.overdue.n)} · ${money(l.ccy,l.overdue.amt)} overdue since ${l.overdue.due} — renewal and changes are blocked.</div>`:l.st==='Trial'?`<div class="note">Trial ends ${l.exp} (${l.days} days).</div>`:l.st==='Cancelling'?`<div class="note">Cancels on ${l.exp} — ${esc(l.cancelReason||'')}</div>`:l.renewBlock&&l.days<=60?`<div class="note">${esc(l.renewBlock)}</div>`:'';
+ return `<div class="lic" data-lic="${esc(l.id)}"><h4><span>${esc(l.name)} <span class="small mut">${esc(l.id)}</span></span>${pill(l.st)}</h4><div class="facts"><span>Plan · users</span><div>${esc(l.plan)} · ${l.users}${l.act&&l.act!==l.users?` <b style="color:${l.act>l.users?'var(--warn)':'inherit'}">(${l.act} active)</b>`:''}</div><span>Recurring / yr</span><div class="num">${money(l.ccy,l.annual)}${l.disc?` · ${l.disc}% off`:''}</div><span>Next recurring</span><div>${l.exp} · ${l.days} days</div><span>Payment</span><div>${esc(l.pm)}${l.auto?' · auto':''}</div></div>${note}<div class="btns">${prim.join('')}</div>${rest.length?`<details class="more"><summary>All actions for this subscription (${rest.length})</summary><div class="btns" style="margin-top:6px">${rest.map(a=>a.ok?btn(esc(a.label)+(a.hint?` <span class="small mut">· ${esc(a.hint)}</span>`:''),()=>openTxn(a.op,l.id,{},{focus:true}),'sm'):dis(esc(a.label),a.why,'sm')).join('')}</div></details>`:''}</div>`}
+function decide(a,yes,note){const r=call('decide',a.id,yes,note);if(r.error)return toast(r.error.message);const key=r.txn||('DEC-'+a.id);S.txns.unshift({key,res:{...r,txn:r.txn},op:a.op,label:(yes?'Approval · ':'Rejection · ')+a.label,org:a.org,at:new Date().toLocaleTimeString(),T:null});
+ if(r.txn)emit('done',{op:r.op,ref:r.ref,state:r.state,params:a.params,cust:r.cust});
+ say(`${stPill(r.state)} <b>${esc(a.id)}</b> · ${esc(a.label)} for ${esc(a.org)} — ${esc(r.title)}${r.notDone?`<div class="small mut">${esc(r.notDone)}</div>`:''}`,[btn('Open receipt',()=>show('receipt',{key},{focus:true}),'sm')]);show('receipt',{key},{focus:true,pane:false});updBadge()}
+function download(name,obj){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(obj,null,2)],{type:'application/json'}));a.download=name;document.body.append(a);a.click();a.remove()}
+
+/* ---------- boot ---------- */
+setRole('sales');
+</script>
+</body></html>
